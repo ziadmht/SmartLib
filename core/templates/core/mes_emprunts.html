@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+{% block title %}Grand Registre - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <!-- En-tête de Prestige -->
+    <div class="academic-header mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold text-oxford-blue mb-0" style="font-family: 'Libre Baskerville';">
+                    Mon Registre Académique
+                </h1>
+                <p class="text-muted text-uppercase letter-spacing-3 mt-2">
+                    <i class="fas fa-university me-2"></i> État de vos consultations et obligations
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="card bg-oxford-blue text-white p-3 border-0 shadow-lg">
+                    <div class="small text-uppercase opacity-75">Solde de Compte</div>
+                    <div class="h2 fw-bold mb-0 {% if total_dette > 0 %}text-warning{% endif %}">
+                        {{ total_dette }} MAD
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZONE 1 : PRÊTS ACTIFS (VISUEL HAUTE QUALITÉ) -->
+    <h3 class="fw-bold text-oxford-blue mb-4 border-bottom border-2 pb-2">
+        <i class="fas fa-book-reader me-2"></i> Ouvrages en Consultation Active
+    </h3>
+    
+    <div class="row g-4 mb-5">
+        {% for e in emprunts_actifs %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-lg border-0 card-vault overflow-hidden {% if e.retard %}border-top border-5 border-danger{% else %}border-top border-5 border-success{% endif %}">
+                <div class="row g-0 h-100">
+                    <div class="col-4 bg-light">
+                        {% if e.livre.couverture %}
+                            <img src="{{ e.livre.couverture.url }}" class="img-fluid h-100 object-fit-cover shadow-sm" alt="{{ e.livre.titre }}">
+                        {% else %}
+                            <div class="h-100 d-flex align-items-center justify-content-center bg-secondary text-white">
+                                <i class="fas fa-book fa-3x opacity-25"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-8 p-3 d-flex flex-column">
+                        <div class="mb-auto">
+                            <h5 class="fw-bold text-oxford-blue mb-1 line-clamp-2">{{ e.livre.titre }}</h5>
+                            <p class="small text-muted italic mb-3">par {{ e.livre.auteur }}</p>
+                        </div>
+                        
+                        <!-- TIMING / COMPTE À REBOURS -->
+                        <div class="timing-zone mt-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Temps restant</span>
+                                <span class="fw-bold {% if e.jours_restants <= 3 %}text-danger pulse-retard{% else %}text-success{% endif %}">
+                                    {% if e.retard %}EXPIRÉ{% else %}{{ e.jours_restants }} jours{% endif %}
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if e.retard %}bg-danger{% elif e.jours_restants <= 3 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {% if e.retard %}100{% else %}70{% endif %}%">
+                                </div>
+                            </div>
+                            <div class="text-center mt-2 small text-muted">
+                                Échéance : <strong>{{ e.date_retour_prevue|date:"d M Y" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center p-5 bg-white shadow-sm border rounded">
+            <i class="fas fa-ghost fa-3x text-muted mb-3"></i>
+            <p class="text-muted lead">Aucun ouvrage en votre possession pour le moment.</p>
+            <a href="{% url 'livre_liste' %}" class="btn btn-academic">Explorer le Catalogue</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ZONE 2 : RÉSERVATIONS ET SANCTIONS -->
+    <div class="row g-4">
+        <!-- RÉSERVATIONS -->
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-header bg-warning text-dark py-3 fw-bold">
+                    <i class="fas fa-clock me-2"></i> RÉSERVATIONS EN ATTENTE DE RÉCUPÉRATION
+                </div>
+                <div class="card-body">
+                    {% if demandes %}
+                    {% for d in demandes %}
+                    <div class="d-flex align-items-center p-3 mb-3 bg-light border-start border-4 border-warning">
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0 text-oxford-blue">{{ d.livre.titre }}</h6>
+                            <small class="text-muted">Demandé le {{ d.date_emprunt|date:"d/m/Y à H:i" }}</small>
+                        </div>
+                        <div class="badge bg-white text-warning border border-warning px-3 py-2">
+                            <i class="fas fa-university me-1"></i> Guichet Requis
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="alert alert-info border-0 rounded-0 small">
+                        <i class="fas fa-info-circle me-2"></i> Présentez-vous à la bibliothèque dans les 48h pour valider ces prêts.
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4 small italic">Aucune réservation active.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- CODE DE CONDUITE ET SANCTIONS -->
+        <div class="col-lg-5">
+            <div class="card shadow-lg border-0 h-100 bg-oxford-blue text-white">
+                <div class="card-header bg-dark text-gold-leaf py-3 fw-bold border-bottom border-gold-leaf">
+                    <i class="fas fa-gavel me-2"></i> CODE DE CONDUITE & SANCTIONS
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <h6 class="text-gold-leaf fw-bold text-uppercase small letter-spacing-2">Règle de Retard</h6>
+                        <p class="small opacity-75">Toute journée de retard après l'échéance entraîne une pénalité fixe de :</p>
+                        <div class="display-6 fw-bold text-center my-2 text-warning">3.00 MAD <span class="small h4">/ Jour</span></div>
+                    </div>
+                    
+                    <hr class="border-secondary">
+
+                    <div class="mb-3">
+                        <h6 class="text-gold-leaf fw-bold text-uppercase small letter-spacing-2">Conséquences de Blocage</h6>
+                        <ul class="small opacity-75 list-unstyled">
+                            <li class="mb-2"><i class="fas fa-times-circle text-danger me-2"></i> <strong>Dette > 30 MAD :</strong> Blocage immédiat de tout nouvel emprunt physique.</li>
+                            <li><i class="fas fa-shield-alt text-danger me-2"></i> <strong>Dette Impayée :</strong> Suspension de l'accès à la E-Library (ScholarVox).</li>
+                        </ul>
+                    </div>
+
+                    <a href="{% url 'mes_penalites' %}" class="btn btn-academic w-100 bg-gold-leaf text-dark border-0 fw-bold">
+                        <i class="fas fa-coins me-2"></i> Régulariser ma situation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .academic-header {
+        background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+    }
+    .progress-bar {
+        transition: width 1s ease-in-out;
+    }
+    .card-vault {
+        transition: transform 0.3s ease;
+    }
+    .card-vault:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}

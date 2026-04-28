@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% block title %}Catalogue des Archives - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue mb-0" style="font-family: 'Libre Baskerville';">Catalogue des Archives</h1>
+        <div class="d-flex align-items-center">
+            {% if user.est_bibliothecaire %}
+            <a href="{% url 'livre_ajouter' %}" class="btn btn-academic me-3">
+                <i class="fas fa-plus-circle me-2"></i> Ajouter
+            </a>
+            {% endif %}
+            <div class="search-vault">
+                <form action="{% url 'livre_liste' %}" method="get" class="d-flex">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control border-2 border-oxford-blue rounded-0" placeholder="Rechercher..." value="{{ search_query }}">
+                        <button class="btn btn-academic py-2" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row g-4">
+        {% for livre in livres %}
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card card-vault h-100 shadow-sm">
+                <!-- Cover Area -->
+                <div class="position-relative overflow-hidden" style="height: 350px;">
+                    {% if livre.couverture %}
+                    <img src="{{ livre.couverture.url }}" class="card-img-top h-100 w-100" style="object-fit: cover; filter: sepia(20%);" alt="{{ livre.titre }}">
+                    {% else %}
+                    <div class="bg-dark h-100 d-flex align-items-center justify-content-center text-gold">
+                        <i class="fas fa-book fa-4x opacity-25"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Badges contextuels -->
+                    <div class="position-absolute top-0 end-0 p-2">
+                        {% if livre.a_version_numerique %}
+                        <span class="badge-prestige small d-block mb-1"><i class="fas fa-laptop"></i> Digital</span>
+                        {% endif %}
+                        {% if livre.quantite_disponible > 0 %}
+                        <span class="badge bg-success badge-status shadow-sm">Disponible</span>
+                        {% else %}
+                        <span class="badge bg-danger badge-status shadow-sm">Indisponible</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 1.5px;">Index: OX-{{ livre.pk|stringformat:"04d" }}</div>
+                    <h5 class="card-title fw-bold text-oxford-blue mb-2" style="font-family: 'Libre Baskerville'; line-height: 1.2;">{{ livre.titre }}</h5>
+                    <p class="card-text small text-muted italic mb-3">Par le Dr. {{ livre.auteur }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="small fw-bold text-gold-brass"><i class="fas fa-archive me-1"></i> Stock: {{ livre.quantite_disponible }}</span>
+                        <a href="{% url 'livre_detail' livre.pk %}" class="btn btn-academic btn-sm py-2">Consulter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-4x opacity-25 mb-3 text-oxford-blue"></i>
+            <h3 class="text-oxford-blue">Aucune archive ne correspond à votre recherche.</h3>
+            <p class="text-muted">Veuillez vérifier les termes ou consulter le bibliothécaire.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

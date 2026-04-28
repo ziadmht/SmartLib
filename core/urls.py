@@ -1,0 +1,49 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # --- 1. PORTAIL D'ACCÈS & SESSION ---
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('', views.dashboard, name='dashboard'),
+    path('profile/', views.profile_view, name='profile'),
+    
+    # --- 2. GESTION DES ARCHIVES (CATALOGUE) ---
+    path('livres/', views.livre_liste, name='livre_liste'),
+    path('livres/ajouter/', views.livre_ajouter, name='livre_ajouter'),
+    path('livres/<int:pk>/', views.livre_detail, name='livre_detail'),
+    path('livres/<int:pk>/modifier/', views.livre_modifier, name='livre_modifier'),
+    path('livres/<int:pk>/supprimer/', views.livre_supprimer, name='livre_supprimer'),
+    path('api/isbn/<str:isbn>/', views.api_isbn_lookup, name='api_isbn_lookup'),
+
+    # --- 3. FLUX DES PRÊTS (LOGISTIQUE) ---
+    path('emprunts/', views.emprunt_liste, name='emprunt_liste'),
+    path('emprunts/manuel/', views.emprunt_manuel, name='emprunt_manuel'),
+    path('emprunts/ajouter/<int:livre_id>/', views.emprunt_ajouter, name='emprunt_ajouter'),
+    path('emprunts/approuver/<int:emprunt_id>/', views.emprunt_approuver, name='emprunt_approuver'),
+    path('emprunts/refuser/<int:emprunt_id>/', views.emprunt_refuser, name='emprunt_refuser'),
+    path('emprunts/retour/<int:emprunt_id>/', views.emprunt_retour, name='emprunt_retour'),
+    path('emprunts/simuler-retard/<int:emprunt_id>/', views.simuler_retard, name='simuler_retard'),
+    
+    # --- 4. HUB ADHÉRENT & MONITORING ---
+    path('mon-activite/', views.mon_activite, name='mon_activite'),
+    path('mes-emprunts/', views.mes_emprunts, name='mes_emprunts'),
+    path('mes-penalites/', views.mes_penalites, name='mes_penalites'),
+    path('penalites/<int:pk>/payer/', views.penalite_payer, name='penalite_payer'),
+    path('penalites/regulariser/<int:emprunt_id>/', views.payer_dette_en_cours, name='payer_dette_en_cours'),
+    
+    # --- 5. UNITÉ NUMÉRIQUE (E-LIBRARY) ---
+    path('e-library/', views.e_library, name='e_library'),
+    # --- 6. PÔLE ÉCONOMIQUE & ABONNEMENTS (UNIFIÉ) ---
+    path('abonnements/souscrire/', views.souscrire_abonnement, name='souscrire_abonnement'),
+    path('abonnements/mes-abonnements/', views.mes_abonnements, name='mes_abonnements'),
+    path('abonnements/gestion-admin/', views.admin_abonnements, name='admin_abonnements'),
+
+    path('abonnements/annuler/', views.annuler_abonnement, name='annuler_abonnement'),
+    path('abonnements/renouveler/<int:abonnement_id>/', views.renouveler_abonnement, name='renouveler_abonnement'),
+    
+    # --- 7. ADMINISTRATION SYSTÈME ---
+    path('utilisateurs/', views.utilisateur_liste, name='utilisateur_liste'),
+    path('utilisateurs/<int:pk>/changer-role/', views.utilisateur_changer_role, name='utilisateur_changer_role'),
+    path('utilisateurs/<int:pk>/gracier/', views.utilisateur_gracier, name='utilisateur_gracier'),
+]

@@ -1,0 +1,120 @@
+{% extends 'core/base.html' %}
+{% block title %}Acquisition de Privilèges - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="text-center mb-5 pb-3 border-bottom border-4 border-gold-leaf">
+        <h1 class="display-4 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">Sceaux de Privilège</h1>
+        <p class="text-muted text-uppercase letter-spacing-3">Choisissez votre niveau d'accès et votre mode de règlement</p>
+    </div>
+
+    <form method="post" id="paymentForm">
+        {% csrf_token %}
+        <div class="row g-5">
+            <!-- 1. SÉLECTION DU PLAN -->
+            <div class="col-lg-7">
+                <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small letter-spacing-2">1. Sélection du Niveau d'Accès</h4>
+                <div class="row g-4">
+                    {% for plan in plans %}
+                    <div class="col-md-6">
+                        <input type="radio" class="btn-check" name="plan_id" id="plan{{ plan.id }}" value="{{ plan.id }}" {% if forloop.first %}checked{% endif %} required>
+                        <label class="card card-vault h-100 p-4 border-2 shadow-sm text-center cursor-pointer w-100" for="plan{{ plan.id }}">
+                            <div class="mb-3">
+                                {% if plan.nom == 'Premium' %}
+                                    <i class="fas fa-crown fa-2x text-gold-leaf"></i>
+                                {% else %}
+                                    <i class="fas fa-feather-alt fa-2x text-oxford-blue"></i>
+                                {% endif %}
+                            </div>
+                            <h5 class="fw-bold mb-1">{{ plan.nom|upper }}</h5>
+                            <div class="h3 fw-bold mb-3">{{ plan.prix_mensuel }} MAD</div>
+                            <ul class="list-unstyled text-start small mb-0">
+                                <li><i class="fas fa-check me-2 text-success"></i>Quota: {{ plan.limite_emprunts_physiques }} livres</li>
+                                <li><i class="fas {% if plan.acces_e_library %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>E-Library</li>
+                            </ul>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-5">
+                    <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small letter-spacing-2">2. Période de Validité</h4>
+                    <div class="btn-group w-100 shadow-sm">
+                        <input type="radio" class="btn-check" name="duree" id="mensuel" value="mensuel" checked>
+                        <label class="btn btn-outline-dark py-3 fw-bold" for="mensuel">MENSUEL (30 Jours)</label>
+                        
+                        <input type="radio" class="btn-check" name="duree" id="annuel" value="annuel">
+                        <label class="btn btn-outline-dark py-3 fw-bold" for="annuel">ANNUEL (365 Jours - Économique)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. TERMINAL DE PAIEMENT -->
+            <div class="col-lg-5">
+                <div class="card shadow-2xl border-0 bg-oxford-blue text-white overflow-hidden">
+                    <div class="card-header bg-dark py-3 text-center border-bottom border-gold-leaf">
+                        <h5 class="mb-0 text-uppercase small fw-bold">Terminal de Règlement Sécurisé</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="small text-gold-leaf text-uppercase fw-bold mb-3 d-block">Mode de Paiement</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="payment_method" id="card" checked>
+                                    <label class="btn btn-outline-light w-100 py-3" for="card">
+                                        <i class="fas fa-credit-card me-2"></i> CARTE
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="payment_method" id="paypal">
+                                    <label class="btn btn-outline-light w-100 py-3" for="paypal">
+                                        <i class="fab fa-paypal me-2"></i> PAYPAL
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Champs Carte (Simulation) -->
+                        <div id="cardFields">
+                            <div class="mb-3">
+                                <label class="x-small text-uppercase opacity-50">Numéro de Sceau Bancaire</label>
+                                <input type="text" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="XXXX XXXX XXXX XXXX">
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <label class="x-small text-uppercase opacity-50">Expiration</label>
+                                    <input type="text" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="MM/YY">
+                                </div>
+                                <div class="col-6">
+                                    <label class="x-small text-uppercase opacity-50">Code Secret</label>
+                                    <input type="password" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="CVV">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <button type="submit" class="btn btn-academic w-100 py-3 fw-bold shadow-lg">
+                                <i class="fas fa-lock me-2"></i> AUTHENTIFIER LE PAIEMENT
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-black py-2 text-center">
+                        <small class="x-small opacity-50"><i class="fas fa-shield-alt me-2"></i>Cryptage Oxford 256-bit actif</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .btn-check:checked + .card-vault {
+        border-color: var(--gold-leaf) !important;
+        background: #fffdf5 !important;
+        transform: scale(1.05);
+    }
+    .x-small { font-size: 0.65rem; }
+    .shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+</style>
+{% endblock %}

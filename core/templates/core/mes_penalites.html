@@ -1,0 +1,147 @@
+{% extends 'core/base.html' %}
+{% block title %}Bureau de Régularisation - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-crimson pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
+            <i class="fas fa-balance-scale me-3 text-oxford-crimson"></i>Bureau des Sanctions
+        </h1>
+        <div class="text-end">
+            <div class="small text-muted text-uppercase letter-spacing-2">Dette Totale à Apurer</div>
+            <div class="h2 fw-bold text-oxford-crimson">{{ total_impaye }} MAD</div>
+        </div>
+    </div>
+
+    <!-- SECTION 1 : RETARDS EN COURS (DETTE LATENTE - LIVRES NON RENDUS) -->
+    <div class="card shadow-lg border-0 bg-white mb-5 border-start border-5 border-warning">
+        <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-clock me-2"></i> Retards sur livres non encore rendus</h5>
+            <span class="badge bg-dark rounded-pill">{{ retards_en_cours|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if retards_en_cours %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light small">
+                        <tr>
+                            <th class="ps-4">Ouvrage en main</th>
+                            <th>Échéance dépassée</th>
+                            <th>Montant Courant</th>
+                            <th class="text-center">Action de Déblocage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in retards_en_cours %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="fw-bold text-dark">{{ e.livre.titre }}</div>
+                                <div class="small text-muted">Veuillez le rendre au guichet</div>
+                            </td>
+                            <td><span class="text-danger fw-bold">{{ e.date_retour_prevue|date:"d M Y" }}</span></td>
+                            <td class="fw-bold text-danger">{{ e.montant_latente }} MAD</td>
+                            <td class="text-center">
+                                <a href="{% url 'payer_dette_en_cours' e.id %}" class="btn btn-academic bg-dark btn-sm py-2 px-4 text-white">
+                                    Régulariser pour débloquer
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-light-warning small italic">
+                <i class="fas fa-info-circle me-2"></i> En régularisant ici, vous payez votre retard actuel et obtenez une trêve de 24h pour rendre le livre sans être bloqué.
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted small">Aucun retard sur vos emprunts actuels.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SECTION 2 : PÉNALITÉS ENREGISTRÉES (APRÈS RETOUR) -->
+    <div class="card shadow-lg border-0 bg-white mb-5 border-start border-5 border-oxford-crimson">
+        <div class="card-header bg-oxford-crimson text-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i> Pénalités sur livres déjà rendus</h5>
+            <span class="badge bg-white text-danger rounded-pill">{{ penalites_impayees.count }}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if penalites_impayees %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light small">
+                        <tr>
+                            <th class="ps-4">Motif / Ouvrage</th>
+                            <th>Date Infraction</th>
+                            <th>Montant</th>
+                            <th class="text-center">Régularisation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in penalites_impayees %}
+                        <tr class="table-danger-light">
+                            <td class="ps-4 py-3">
+                                <div class="fw-bold text-dark">{{ p.emprunt.livre.titre|default:"Sanction Administrative" }}</div>
+                                <div class="small text-muted">ID: {{ p.id|stringformat:"05d" }}</div>
+                            </td>
+                            <td>{{ p.date_creation|date:"d M Y" }}</td>
+                            <td class="fw-bold text-danger">{{ p.montant }} MAD</td>
+                            <td class="text-center">
+                                <a href="{% url 'penalite_payer' p.pk %}" class="btn btn-academic bg-oxford-crimson btn-sm py-2 px-4">
+                                    Payer Maintenant
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted small">Aucune pénalité impayée sur vos anciens emprunts.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SECTION 3 : HISTORIQUE DES PAIEMENTS -->
+    <div class="card shadow-lg border-0 bg-white opacity-75">
+        <div class="card-header bg-dark text-white py-3">
+            <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-history me-2"></i> Historique de vos paiements validés</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if historique_paiements %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead class="bg-light small">
+                        <tr>
+                            <th class="ps-4">Ouvrage</th>
+                            <th>Date Paiement</th>
+                            <th>Montant Réglé</th>
+                            <th class="text-center">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in historique_paiements %}
+                        <tr class="small">
+                            <td class="ps-4 py-3 text-muted">{{ h.emprunt.livre.titre|default:"Frais Divers" }}</td>
+                            <td>{{ h.date_paiement|date:"d/m/Y H:i" }}</td>
+                            <td class="fw-bold text-success">{{ h.montant }} MAD</td>
+                            <td class="text-center">
+                                <span class="text-success fw-bold"><i class="fas fa-check me-1"></i> PAYÉ</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted italic small">Aucun historique de paiement disponible.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-danger-light { background-color: rgba(220, 53, 69, 0.05); }
+    .bg-light-warning { background-color: #fff3cd; }
+</style>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Bibliothèque Numérique - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
+            <i class="fas fa-book-reader me-3"></i>Ressources Numériques
+        </h1>
+        <div class="badge bg-academic p-3 rounded-0 shadow-sm">
+            <i class="fas fa-shield-alt me-2"></i> ACCÈS PREMIUM ACTIF
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for livre in livres %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 rounded-0 transition-hover">
+                {% if livre.couverture %}
+                <img src="{{ livre.couverture.url }}" class="card-img-top rounded-0" alt="{{ livre.titre }}" style="height: 350px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-oxford-blue">{{ livre.titre }}</h5>
+                    <p class="card-text text-muted small mb-3">Par {{ livre.auteur }}</p>
+                    <div class="d-grid">
+                        {% if livre.fichier_pdf %}
+                        <a href="{{ livre.fichier_pdf.url }}" target="_blank" class="btn btn-academic rounded-0 py-2">
+                            <i class="fas fa-file-pdf me-2"></i> Lire en ligne
+                        </a>
+                        {% else %}
+                        <button class="btn btn-outline-secondary disabled rounded-0">
+                            Fichier non disponible
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-4"></i>
+            <h4 class="text-muted">Aucune ressource numérique n'est disponible pour le moment.</h4>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

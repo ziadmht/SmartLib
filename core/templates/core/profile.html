@@ -1,0 +1,185 @@
+{% extends 'core/base.html' %}
+{% block title %}Dossier Secret de l'Adhérent{% endblock %}
+
+{% block content %}
+<style>
+    /* Style Spécifique : Vampire Heritage */
+    .vampire-border {
+        position: relative;
+        padding: 40px;
+        background: var(--paper-cream);
+        border: 2px solid var(--oxford-crimson);
+        box-shadow: 0 0 0 4px var(--paper-cream), 0 0 0 6px var(--gold-brass);
+        margin: 20px;
+    }
+
+    .vampire-border::before, .vampire-border::after,
+    .vampire-border .corner-tl, .vampire-border .corner-tr,
+    .vampire-border .corner-bl, .vampire-border .corner-br {
+        content: "";
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--oxford-crimson);
+        z-index: 10;
+    }
+
+    .vampire-border .corner-tl { top: -10px; left: -10px; border-right: none; border-bottom: none; }
+    .vampire-border .corner-tr { top: -10px; right: -10px; border-left: none; border-bottom: none; }
+    .vampire-border .corner-bl { bottom: -10px; left: -10px; border-right: none; border-top: none; }
+    .vampire-border .corner-br { bottom: -10px; right: -10px; border-left: none; border-top: none; }
+
+    .wax-seal-header {
+        background: var(--oxford-crimson);
+        color: var(--gold-brass);
+        padding: 20px;
+        margin: -40px -40px 40px -40px;
+        text-align: center;
+        border-bottom: 3px double var(--gold-brass);
+        position: relative;
+    }
+
+    .wax-seal-header::after {
+        content: "📜";
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--oxford-crimson);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        border: 3px solid var(--gold-brass);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .form-control-vintage {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(139, 0, 0, 0.3) !important;
+        border-radius: 0 !important;
+        color: var(--text-ink) !important;
+        padding-left: 0 !important;
+        transition: 0.4s all;
+    }
+
+    .form-control-vintage:focus {
+        border-bottom: 2px solid var(--oxford-crimson) !important;
+        box-shadow: none !important;
+        background: rgba(139, 0, 0, 0.02) !important;
+    }
+
+    .btn-blood {
+        background: var(--oxford-crimson);
+        color: white;
+        border: 2px solid var(--gold-brass);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        padding: 15px;
+        transition: 0.5s;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .btn-blood:hover {
+        background: #4a0000;
+        color: var(--gold-brass);
+        box-shadow: 0 0 20px rgba(139, 0, 0, 0.4);
+        transform: scale(1.02);
+    }
+
+    .profile-frame {
+        border: 8px solid var(--oak-dark);
+        outline: 2px solid var(--gold-brass);
+        padding: 5px;
+        background: white;
+        transition: 0.5s;
+    }
+
+    .profile-frame:hover {
+        transform: rotate(-2deg) scale(1.05);
+        outline-color: var(--oxford-crimson);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="vampire-border">
+            <div class="corner-tl"></div><div class="corner-tr"></div>
+            <div class="corner-bl"></div><div class="corner-br"></div>
+
+            <div class="wax-seal-header">
+                <h2 class="mb-0">ARCHIVES PERSONNELLES</h2>
+                <small class="text-uppercase tracking-widest">Sceau de l'Adhérent SmartLib</small>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row g-5">
+                    <!-- Photo Column -->
+                    <div class="col-md-4 text-center">
+                        <div class="profile-frame mb-4">
+                            {% if user.photo_profil %}
+                            <img src="{{ user.photo_profil.url }}" class="img-fluid w-100" style="filter: sepia(30%) contrast(110%);">
+                            {% else %}
+                            <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-user-secret fa-4x opacity-25"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <label class="btn btn-outline-dark btn-sm w-100 rounded-0">
+                            <i class="fas fa-camera me-2"></i> Mettre à jour le portrait
+                            <input type="file" name="photo_profil" hidden>
+                        </label>
+                    </div>
+
+                    <!-- Fields Column -->
+                    <div class="col-md-8">
+                        <div class="mb-4">
+                            <label class="text-uppercase small fw-bold opacity-50">Identité Nominale</label>
+                            <input type="text" class="form-control-vintage" value="{{ user.username }}" readonly>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="text-uppercase small fw-bold opacity-50">Courrier Électronique</label>
+                            <input type="email" name="email" class="form-control-vintage" value="{{ user.email }}" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-uppercase small fw-bold opacity-50">Ligne Téléphonique</label>
+                            <input type="text" name="telephone" class="form-control-vintage" value="{{ user.telephone|default:'' }}" placeholder="Ex: 0612345678">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-uppercase small fw-bold opacity-50">Résidence Actuelle</label>
+                            <textarea name="adresse" class="form-control-vintage" rows="2">{{ user.adresse|default:'' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn-blood w-100 mt-4 shadow">
+                            <i class="fas fa-pen-nib me-2"></i> Sceller les Modifications
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section Statut avec style original -->
+        <div class="card mt-5 bg-dark text-white border-0 rounded-0 shadow-lg">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="gold-title mb-1">RANG AU SEIN DE LA GUILDE</h5>
+                    <p class="mb-0 opacity-75">Statut actuel : <span class="text-warning">{{ user.get_role_display|upper }}</span></p>
+                </div>
+                <div class="text-end">
+                    <i class="fas fa-shield-alt fa-3x text-gold-brass opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

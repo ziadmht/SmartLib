@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Authentification Officielle - SmartLib{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center reveal" style="min-height: 80vh;">
+    <div class="col-md-5">
+        <div class="card shadow-lg p-2" style="background: var(--oxford-blue); border: 2px solid var(--gold-leaf);">
+            <div class="card-body bg-white p-5" style="border: 1px solid var(--gold-brass); background-color: var(--paper-cream) !important; background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');">
+                <div class="text-center mb-5">
+                    <i class="fas fa-university fa-3x mb-3" style="color: var(--oxford-blue);"></i>
+                    <h2 class="fw-bold text-uppercase mb-0" style="letter-spacing: 4px; font-family: 'Libre Baskerville', serif;">SmartLib</h2>
+                    <div class="small text-muted mt-2" style="letter-spacing: 2px;">ACCÈS AUX ARCHIVES ÉLECTRONIQUES</div>
+                    <div style="height: 2px; width: 60px; background: var(--gold-leaf); margin: 20px auto;"></div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="username" class="small fw-bold text-uppercase mb-2" style="letter-spacing: 1px;">Identifiant Officiel</label>
+                        <div class="input-group border-bottom border-dark border-2">
+                            <span class="input-group-text bg-transparent border-0 px-0"><i class="fas fa-user-tie text-dark"></i></span>
+                            <input type="text" name="username" id="username" class="form-control bg-transparent border-0 shadow-none" placeholder="Nom d'utilisateur" required autofocus>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <label for="password" class="small fw-bold text-uppercase mb-2" style="letter-spacing: 1px;">Clef d'Accès</label>
+                        <div class="input-group border-bottom border-dark border-2">
+                            <span class="input-group-text bg-transparent border-0 px-0"><i class="fas fa-key text-dark"></i></span>
+                            <input type="password" name="password" id="password" class="form-control bg-transparent border-0 shadow-none" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-academic w-100 py-3 mb-4">
+                        <i class="fas fa-sign-in-alt me-2"></i> Authentifier la session
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top border-dark border-opacity-10">
+                    <p class="text-muted small font-italic" style="font-family: 'Crimson Pro', serif;">
+                        "Sapere Aude - Osez Savoir"<br>
+                        <span class="opacity-50 mt-2 d-block">En cas d'oubli, veuillez consulter le bibliothécaire en chef.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

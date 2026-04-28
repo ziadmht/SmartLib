@@ -1,0 +1,203 @@
+{% extends 'core/base.html' %}
+{% block title %}Surveillance Active - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal-fast container-fluid px-4">
+    <!-- BANDEAU DE COMMANDEMENT (L'ESPACE EST EXPLOITÉ ICI) -->
+    <div class="monitoring-header d-flex justify-content-between align-items-center mb-5 p-4 rounded shadow-2xl">
+        <div class="d-flex align-items-center">
+            <div class="live-pulse me-4"></div>
+            <div>
+                <h1 class="h2 fw-bold text-white mb-0" style="font-family: 'Libre Baskerville';">Unit de Surveillance <span class="text-gold-leaf">Oxford Alpha</span></h1>
+                <p class="text-white-50 small mb-0 text-uppercase letter-spacing-2">Terminal de contrôle des flux documentaires • {{ user.username|upper }}</p>
+            </div>
+        </div>
+        <div class="text-end text-white d-none d-md-block border-start border-white-50 ps-4">
+            <div class="h3 mb-0 fw-bold" id="main-clock">--:--:--</div>
+            <div class="x-small text-gold-leaf fw-bold">SYNCHRONISATION SERVEUR ACTIVE</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLONNE GAUCHE (3/12) : VALIDATIONS -->
+        <div class="col-xl-3">
+            <div class="card bg-white border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-header bg-dark text-white py-3 border-bottom border-warning border-3">
+                    <h6 class="mb-0 fw-bold text-uppercase small"><i class="fas fa-hourglass-half me-2"></i> Guichet de Validation</h6>
+                </div>
+                <div class="card-body p-3">
+                    {% for d in en_validation %}
+                    <div class="pending-item mb-3 p-2 border rounded shadow-sm">
+                        <div class="d-flex">
+                            <div class="cover-thumb me-3">
+                                {% if d.livre.couverture %}
+                                    <img src="{{ d.livre.couverture.url }}" class="rounded shadow-sm">
+                                {% else %}
+                                    <div class="thumb-placeholder"><i class="fas fa-book"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <h6 class="fw-bold text-oxford-blue mb-0 text-truncate">{{ d.livre.titre }}</h6>
+                                <code class="x-small text-muted">ID: {{ d.id|add:"1000" }}</code>
+                                <div class="progress mt-2" style="height: 3px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted opacity-50">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <p class="small">Aucun livre au guichet.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="mt-4 p-3 bg-light rounded border border-dashed text-center">
+                        <small class="text-muted italic">"Présentez-vous au bibliothécaire pour finaliser ces sorties."</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE (9/12) : INVENTAIRE ET TIMING -->
+        <div class="col-xl-9">
+            <div class="card bg-white border-0 shadow-sm h-100">
+                <div class="card-header bg-oxford-blue text-white py-3 border-bottom border-success border-3 d-flex justify-content-between">
+                    <h6 class="mb-0 fw-bold text-uppercase small"><i class="fas fa-archive me-2"></i> Inventaire en Circulation Active</h6>
+                    <span class="badge bg-success">{{ emprunts_actifs|length }} OBJETS</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        {% for e in emprunts_actifs %}
+                        <div class="col-md-6 col-xxl-4">
+                            <div class="card-monitoring-pro {% if e.penalite_actuelle > 0 %}border-danger pulse-red-border{% endif %}" id="card-{{ e.id }}">
+                                <div class="position-relative">
+                                    <div class="badge-status-top {% if e.penalite_actuelle > 0 %}bg-danger{% else %}bg-success{% endif %}">
+                                        {% if e.penalite_actuelle > 0 %}ALERTE SANCTION{% else %}SÉCURISÉ{% endif %}
+                                    </div>
+                                    {% if e.livre.couverture %}
+                                        <img src="{{ e.livre.couverture.url }}" class="card-img-top object-fit-cover" style="height: 200px;">
+                                    {% else %}
+                                        <div class="bg-dark d-flex align-items-center justify-content-center text-white" style="height: 200px;">
+                                            <i class="fas fa-book fa-4x opacity-25"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold text-oxford-blue mb-1 line-clamp-1">{{ e.livre.titre }}</h6>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <code class="x-small text-muted">ISBN: {{ e.livre.isbn|default:"SANS-REF" }}</code>
+                                        <div class="countdown-clock fw-bold text-dark" data-deadline="{{ e.timestamp_echeance }}">--:--:--</div>
+                                    </div>
+
+                                    {% if e.penalite_actuelle > 0 %}
+                                    <div class="sanction-console p-2 rounded mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> DETTE :</span>
+                                            <span class="h5 mb-0 fw-bold">{{ e.penalite_actuelle }} MAD</span>
+                                        </div>
+                                        <div class="detail-calc text-end">
+                                            {{ e.nb_jours_retard }} jours de retard x 3.00 MAD
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="bg-light p-2 rounded mb-3 text-center small text-success fw-bold">
+                                        <i class="fas fa-clock me-1"></i> ÉCHÉANCE : {{ e.date_retour_prevue|date:"d/m/y à H:i" }}
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="d-flex justify-content-between x-small text-muted border-top pt-2">
+                                        <span>Pris le {{ e.date_emprunt|date:"d/m" }}</span>
+                                        <span class="fw-bold">Réf #{{ e.id|add:"4000" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-ghost fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="lead text-muted">Aucun ouvrage en circulation.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAPPEL DU RÈGLEMENT (PROFITER DE L'ESPACE BAS) -->
+    <div class="alert bg-dark text-white mt-5 border-0 shadow-lg p-4">
+        <div class="row align-items-center">
+            <div class="col-md-1 text-center">
+                <i class="fas fa-balance-scale fa-3x text-gold-leaf"></i>
+            </div>
+            <div class="col-md-11">
+                <h5 class="fw-bold text-gold-leaf mb-1">RÈGLE D'OR D'OXFORD</h5>
+                <p class="mb-0 small opacity-75">Toute journée de retard est facturée <strong>3.00 MAD</strong>. Le cumul au-delà de <strong>30.00 MAD</strong> bloque vos privilèges d'emprunt et l'accès à la E-Library. La régularisation immédiate lève toutes les restrictions.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .monitoring-header { background: linear-gradient(135deg, #001a35 0%, #003366 100%); border-left: 10px solid #d4af37; }
+    .live-pulse { height: 15px; width: 15px; background: #28a745; border-radius: 50%; box-shadow: 0 0 10px #28a745; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+
+    .cover-thumb img { height: 50px; width: 35px; object-fit: cover; }
+    .thumb-placeholder { height: 50px; width: 35px; background: #eee; display: flex; align-items: center; justify-content: center; color: #ccc; }
+
+    .card-monitoring-pro {
+        background: white; border: 1px solid #eee; border-radius: 12px; overflow: hidden; transition: 0.4s; position: relative;
+    }
+    .card-monitoring-pro:hover { transform: translateY(-10px); shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: #d4af37; }
+
+    .badge-status-top {
+        position: absolute; top: 10px; left: 10px; z-index: 10;
+        padding: 4px 10px; color: white; font-weight: 800; font-size: 0.6rem; border-radius: 4px; letter-spacing: 1px;
+    }
+    .countdown-clock { font-family: 'Courier New', Courier, monospace; background: #f8f9fa; padding: 2px 8px; border-radius: 4px; border: 1px solid #ddd; }
+
+    .sanction-console { background: #1a1a1a; color: #ff4d4d; border-left: 4px solid #dc3545; }
+    .detail-calc { font-size: 0.6rem; color: #ffffff80; font-family: 'Consolas', monospace; }
+
+    .pulse-red-border { border: 2px solid #dc3545 !important; animation: border-glow 1s infinite; }
+    @keyframes border-glow { 0% { border-color: #dc3545; } 50% { border-color: #ff0000; } 100% { border-color: #dc3545; } }
+
+    .letter-spacing-2 { letter-spacing: 2px; }
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+
+<script>
+    function updateMonitoring() {
+        const now = new Date();
+        document.getElementById('main-clock').innerText = now.toLocaleTimeString();
+
+        document.querySelectorAll('.countdown-clock').forEach(clock => {
+            const deadline = new Date(clock.dataset.deadline);
+            const diff = deadline - now;
+            
+            if (diff <= 0) {
+                clock.innerText = "EXPIRÉ";
+                clock.style.color = "#dc3545";
+            } else {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                clock.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
+
+                // ALERTE ROUGE 30 MINUTES (Règle Stricte)
+                if (diff < 30 * 60 * 1000) {
+                    clock.style.background = "#dc3545";
+                    clock.style.color = "white";
+                    clock.classList.add('pulse-red-border');
+                }
+            }
+        });
+    }
+    setInterval(updateMonitoring, 1000);
+    updateMonitoring();
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+{% block title %}Tarifs & Plans - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
+            <i class="fas fa-tags me-3"></i>Grille Tarifaire Officielle
+        </h1>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        {% for plan in plans %}
+        <div class="col-md-5">
+            <div class="card h-100 shadow-lg border-0 card-vault {% if plan.nom == 'Premium' %}border-top border-5 border-gold-leaf{% else %}border-top border-5 border-oxford-blue{% endif %}">
+                <div class="card-body p-5 text-center">
+                    <h2 class="fw-bold text-oxford-blue mb-4">{{ plan.nom|upper }}</h2>
+                    <div class="display-4 fw-bold mb-2">{{ plan.prix_mensuel }} <span class="h4">MAD</span></div>
+                    <p class="text-muted text-uppercase small letter-spacing-2 mb-5">Par Mois</p>
+                    
+                    <ul class="list-unstyled text-start mb-5">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>{{ plan.limite_emprunts_physiques }}</strong> Livres physiques simultanés
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas {% if plan.acces_e_library %}fa-check-circle text-success{% else %}fa-times-circle text-danger{% endif %} me-2"></i>
+                            Accès E-Library (Digital) : <strong>{% if plan.acces_e_library %}Inclus{% else %}Non inclus{% endif %}</strong>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Support académique 24/7
+                        </li>
+                    </ul>
+
+                    <div class="bg-light p-3 border-dashed mb-4">
+                        <div class="small text-muted">Prix Annuel (Économique)</div>
+                        <div class="h4 mb-0 fw-bold text-oxford-blue">{{ plan.prix_annuel }} MAD</div>
+                    </div>
+
+                    {% if user.est_administrateur %}
+                    <button class="btn btn-academic w-100 py-3" disabled>
+                        <i class="fas fa-edit me-2"></i> Modifier (J14)
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="alert alert-info">Aucun plan configuré. Veuillez utiliser l'administration Django.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .border-dashed { border: 1px dashed #c5a059; }
+</style>
+{% endblock %}

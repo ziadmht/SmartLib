@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+{% block title %}Registre des Prêts - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
+            <i class="fas fa-pen-nib me-3"></i>Registre des Mouvements
+        </h1>
+        <div class="text-end">
+            <a href="{% url 'emprunt_manuel' %}" class="btn btn-academic bg-dark">
+                <i class="fas fa-plus me-2"></i> Nouveau Prêt Direct
+            </a>
+        </div>
+    </div>
+
+    <!-- SECTION 1 : DEMANDES EN ATTENTE (CRITIQUE) -->
+    <div class="card shadow-lg mb-5 border-0">
+        <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-uppercase fw-bold small"><i class="fas fa-bell pulse-warning me-2"></i> Demandes de Réservation à Valider</h5>
+            <span class="badge bg-dark rounded-pill">{{ demandes.count }}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if demandes %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light small">
+                        <tr>
+                            <th class="ps-4">Adhérent</th>
+                            <th>Ouvrage</th>
+                            <th>Date Demande</th>
+                            <th class="text-center">Décision Administrative</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in demandes %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="fw-bold text-oxford-blue">{{ d.adherent.username|upper }}</div>
+                                <div class="small text-muted">{{ d.adherent.email }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ d.livre.titre }}</div>
+                                <div class="small opacity-50">REF: {{ d.livre.isbn|default:"-" }}</div>
+                            </td>
+                            <td>{{ d.date_emprunt|date:"d/m/Y H:i" }}</td>
+                            <td class="text-center">
+                                <div class="btn-group shadow-sm">
+                                    <a href="{% url 'emprunt_approuver' d.id %}" class="btn btn-success btn-sm px-3">
+                                        <i class="fas fa-check me-1"></i> Approuver
+                                    </a>
+                                    <a href="{% url 'emprunt_refuser' d.id %}" class="btn btn-outline-danger btn-sm px-3" onclick="return confirm('Refuser cette demande ?')">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted italic small">Aucune demande en attente.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SECTION 2 : PRÊTS ACTIFS (SURVEILLANCE) -->
+    <div class="card shadow-lg mb-5 border-0">
+        <div class="card-header bg-oxford-blue text-white py-3">
+            <h5 class="mb-0 text-uppercase fw-bold small"><i class="fas fa-book-reader me-2"></i> Prêts Actifs & Surveillance des Retards</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if emprunts_actifs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light small">
+                        <tr>
+                            <th class="ps-4">Lecteur</th>
+                            <th>Ouvrage</th>
+                            <th>Échéance</th>
+                            <th>État Financier</th>
+                            <th class="text-center">Clôture</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in emprunts_actifs %}
+                        <tr class="{% if e.est_en_retard %}table-light-danger{% endif %}">
+                            <td class="ps-4 py-3">
+                                <div class="fw-bold">{{ e.adherent.username|upper }}</div>
+                            </td>
+                            <td>{{ e.livre.titre }}</td>
+                            <td>
+                                <div class="fw-bold {% if e.est_en_retard %}text-danger{% endif %}">
+                                    {{ e.date_retour_prevue|date:"d/m/Y" }}
+                                </div>
+                                {% if e.est_en_retard %}
+                                <span class="badge bg-danger x-small">RETARD CRITIQUE</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ e.calculer_penalite }} MAD</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group shadow-sm">
+                                    <a href="{% url 'emprunt_retour' e.id %}" class="btn btn-academic btn-sm py-2">
+                                        <i class="fas fa-undo-alt me-1"></i> Retour
+                                    </a>
+                                    <a href="{% url 'simuler_retard' e.id %}" class="btn btn-outline-info btn-sm py-2" title="Simuler un retard (Baguette Magique)">
+                                        <i class="fas fa-magic"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted small">Aucun prêt actif dans la base.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-light-danger { background-color: rgba(220, 53, 69, 0.05); }
+    .x-small { font-size: 0.6rem; letter-spacing: 1px; }
+</style>
+{% endblock %}

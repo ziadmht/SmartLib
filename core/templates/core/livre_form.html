@@ -1,0 +1,196 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if mode == 'ajouter' %}Ajouter{% else %}Modifier{% endif %} un livre{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-book"></i>
+                    {% if mode == 'ajouter' %}Ajouter un livre{% else %}Modifier : {{ livre.titre }}{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Message de chargement / erreur -->
+                <div id="smartFillMessage" style="display: none;" class="alert"></div>
+                
+                <form method="post" enctype="multipart/form-data" id="livreForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Titre *</label>
+                            <input type="text" name="titre" id="id_titre" class="form-control" required value="{{ livre.titre|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Auteur *</label>
+                            <input type="text" name="auteur" id="id_auteur" class="form-control" required value="{{ livre.auteur|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">ISBN (13 chiffres)</label>
+                            <div class="input-group">
+                                <input type="text" name="isbn" id="id_isbn" class="form-control" value="{{ livre.isbn|default:'' }}" placeholder="9782070541270">
+                                <button type="button" id="btnSmartFill" class="btn btn-info">
+                                    <i class="fas fa-magic"></i> Auto-remplir
+                                </button>
+                            </div>
+                            <small class="text-muted">Tapez ou collez un ISBN, puis cliquez sur "Auto-remplir"</small>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Année publication</label>
+                            <input type="number" name="annee_publication" id="id_annee_publication" class="form-control" value="{{ livre.annee_publication|default:'' }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Quantité totale</label>
+                            <input type="number" name="quantite_totale" id="id_quantite_totale" class="form-control" value="{{ livre.quantite_totale|default:0 }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Éditeur</label>
+                        <input type="text" name="editeur" id="id_editeur" class="form-control" value="{{ livre.editeur|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Résumé</label>
+                        <textarea name="resume" id="id_resume" class="form-control" rows="4">{{ livre.resume|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Couverture</label>
+                            <input type="file" name="couverture" id="id_couverture" class="form-control" accept="image/*">
+                            {% if livre.couverture %}
+                            <small class="text-muted">Actuel: {{ livre.couverture.name }}</small>
+                            {% endif %}
+                            <div id="couverturePreview" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="a_version_numerique" class="form-check-input" id="versionNumerique" {% if livre.a_version_numerique %}checked{% endif %}>
+                                <label class="form-check-label" for="versionNumerique">
+                                    <i class="fas fa-cloud-upload-alt"></i> Version numérique disponible
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="pdfUpload" class="mb-3" style="display: {% if livre.a_version_numerique %}block{% else %}none{% endif %};">
+                        <label class="form-label">Fichier PDF/EPUB</label>
+                        <input type="file" name="fichier_pdf" class="form-control" accept=".pdf,.epub">
+                        {% if livre.fichier_pdf %}
+                        <small class="text-muted">Actuel: {{ livre.fichier_pdf.name }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'livre_liste' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> 
+                            {% if mode == 'ajouter' %}Ajouter le livre{% else %}Enregistrer les modifications{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Afficher/masquer le champ PDF selon la checkbox
+    document.getElementById('versionNumerique').addEventListener('change', function() {
+        document.getElementById('pdfUpload').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // ============================================================
+    // SMART FILL - Auto-remplissage par ISBN
+    // ============================================================
+    
+    const btnSmartFill = document.getElementById('btnSmartFill');
+    const isbnInput = document.getElementById('id_isbn');
+    const messageDiv = document.getElementById('smartFillMessage');
+    
+    btnSmartFill.addEventListener('click', function() {
+        const isbn = isbnInput.value.trim();
+        
+        if (!isbn) {
+            showMessage('Veuillez saisir un ISBN', 'warning');
+            return;
+        }
+        
+        // Désactiver le bouton pendant le chargement
+        btnSmartFill.disabled = true;
+        btnSmartFill.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recherche...';
+        showMessage('Recherche en cours...', 'info');
+        
+        // Appel AJAX à l'API
+        fetch(`/api/isbn/${encodeURIComponent(isbn)}/`)
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Aucun livre trouvé pour cet ISBN');
+                    }
+                    throw new Error('Erreur lors de la recherche');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Remplir les champs avec les données reçues
+                if (data.titre) document.getElementById('id_titre').value = data.titre;
+                if (data.auteur) document.getElementById('id_auteur').value = data.auteur;
+                if (data.editeur) document.getElementById('id_editeur').value = data.editeur;
+                if (data.annee_publication) document.getElementById('id_annee_publication').value = data.annee_publication;
+                if (data.resume) document.getElementById('id_resume').value = data.resume;
+                
+                // Afficher un message de succès
+                showMessage('Formulaire pré-rempli avec succès !', 'success');
+                
+                // Optionnel : prévisualiser la couverture si URL fournie
+                if (data.couverture_url) {
+                    const previewDiv = document.getElementById('couverturePreview');
+                    previewDiv.innerHTML = `<img src="${data.couverture_url}" class="img-thumbnail" style="max-height: 100px;">`;
+                }
+            })
+            .catch(error => {
+                showMessage(error.message, 'danger');
+            })
+            .finally(() => {
+                // Réactiver le bouton
+                btnSmartFill.disabled = false;
+                btnSmartFill.innerHTML = '<i class="fas fa-magic"></i> Auto-remplir';
+            });
+    });
+    
+    function showMessage(message, type) {
+        messageDiv.style.display = 'block';
+        messageDiv.className = `alert alert-${type}`;
+        messageDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        
+        // Cacher le message après 5 secondes
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+</script>
+
+{% block extra_js %}
+<style>
+    .alert {
+        transition: all 0.3s ease;
+    }
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+{% endblock %}

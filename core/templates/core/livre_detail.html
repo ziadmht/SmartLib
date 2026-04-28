@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ livre.titre }} - Registre Officiel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Archives Section -->
+    <div class="col-md-4 mb-5 text-center">
+        <div class="card p-2 shadow-2-strong bg-dark" style="border: 4px solid var(--gold-brass);">
+            {% if livre.couverture %}
+            <img src="{{ livre.couverture.url }}" class="img-fluid rounded-0 shadow" alt="{{ livre.titre }}" style="filter: sepia(10%);">
+            {% else %}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 500px;">
+                <i class="fas fa-book fa-5x opacity-25"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4 card p-4 text-start border-2">
+            <h6 class="fw-bold text-uppercase opacity-50 small mb-3 border-bottom pb-2">Données Bibliographiques</h6>
+            <p class="mb-2"><strong class="small">INDEX ISBN :</strong> <span class="text-oxford-blue">{{ livre.isbn|default:"---" }}</span></p>
+            <p class="mb-2"><strong class="small">ARCHIVÉ LE :</strong> <span class="text-oxford-blue">{{ livre.date_ajout|date:"d M Y" }}</span></p>
+            <p class="mb-2"><strong class="small">RESTE EN RAYON :</strong> <span class="badge-academic">{{ livre.quantite_disponible }}</span></p>
+            
+            {% if user.est_administrateur or user.est_bibliothecaire %}
+            <hr>
+            <a href="{% url 'livre_modifier' livre.pk %}" class="btn btn-outline-dark btn-sm w-100 rounded-0 mt-2">
+                <i class="fas fa-pen-nib me-2"></i> Rectifier l'Entrée
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Analysis Section -->
+    <div class="col-md-8 ps-md-5">
+        <div class="card shadow-lg p-5 rounded-0 border-0" style="background-image: url('https://www.transparenttextures.com/patterns/notebook.png');">
+            <div class="d-flex justify-content-between align-items-start mb-5 border-bottom border-4 border-oxford-blue pb-4">
+                <div>
+                    <h1 class="display-3 fw-bold text-oxford-blue mb-1" style="font-family: 'Libre Baskerville';">{{ livre.titre }}</h1>
+                    <h4 class="text-oxford-crimson fw-bold">Par le Dr. {{ livre.auteur }}</h4>
+                </div>
+                <div class="text-end text-muted small">
+                    <div>REGISTRE NO.</div>
+                    <div class="fw-bold h4">OX-{{ livre.pk|stringformat:"04d" }}</div>
+                </div>
+            </div>
+
+            <!-- Author Biography -->
+            <div class="row align-items-center mb-5 p-4" style="background: rgba(0,33,71,0.03); border: 1px solid var(--gold-brass);">
+                <div class="col-md-3 text-center">
+                    {% if livre.auteur_photo %}
+                    <img src="{{ livre.auteur_photo.url }}" class="rounded-0 shadow border border-2 border-white" style="width: 120px; height: 120px; object-fit: cover; filter: grayscale(50%);">
+                    {% else %}
+                    <div class="bg-dark text-white d-inline-flex align-items-center justify-content-center border border-2 border-gold-brass" style="width: 120px; height: 120px;">
+                        <i class="fas fa-user-graduate fa-2x opacity-50"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9 mt-3 mt-md-0">
+                    <h5 class="fw-bold text-oxford-blue mb-2"><i class="fas fa-feather text-oxford-crimson me-2"></i>Note sur l'Auteur</h5>
+                    <p class="text-muted small italic mb-0" style="line-height: 1.6; text-align: justify;">
+                        {{ livre.auteur_biographie|default:"Aucune note biographique archivée pour ce contributeur."|linebreaksbr }}
+                    </p>
+                </div>
+            </div>
+
+            <h5 class="text-uppercase fw-bold letter-spacing-2 mb-4"><i class="fas fa-align-left text-oxford-crimson me-2"></i>Sommaire & Analyse</h5>
+            <p class="lead text-dark lh-lg mb-5" style="text-align: justify; font-family: 'Crimson Pro'; font-size: 1.3rem;">
+                {{ livre.resume|default:"Contenu non encore numérisé."|linebreaksbr }}
+            </p>
+
+            <div class="mt-auto pt-5">
+                {% if user.est_adherent %}
+                <div class="d-flex gap-4">
+                    {% if peut_emprunter and livre.est_disponible_physique %}
+                    <a href="{% url 'emprunt_ajouter' livre.pk %}" class="btn-academic btn-lg px-5 shadow flex-grow-1 text-center text-decoration-none" onclick="return confirm('Confirmez-vous la sollicitation de cet ouvrage ?')">
+                        <i class="fas fa-stamp me-2"></i> Solliciter cet Ouvrage
+                    </a>
+                    {% elif not peut_emprunter %}
+                    <div class="alert alert-warning rounded-0 border-2 w-100 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i> {{ message_emprunt }}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger rounded-0 border-2 w-100 mb-0">
+                        <i class="fas fa-clock me-2"></i> Indisponible : En cours de consultation par un autre membre.
+                    </div>
+                    {% endif %}
+                    
+                    {% if livre.a_version_numerique %}
+                    <a href="{% url 'e_library' %}" class="btn btn-outline-dark btn-lg px-5 rounded-0">
+                        <i class="fas fa-microscope me-2"></i> Analyse Digitale
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if user.est_bibliothecaire %}
+                <div class="mt-4 d-flex gap-3">
+                    <a href="{% url 'livre_modifier' livre.pk %}" class="btn btn-academic bg-dark text-white px-5 flex-grow-1 text-center text-decoration-none">
+                        <i class="fas fa-edit me-2"></i> Éditer le Registre
+                    </a>
+                    {% if user.est_administrateur %}
+                    <a href="{% url 'livre_supprimer' livre.pk %}" class="btn btn-academic px-5 flex-grow-1 text-center text-decoration-none" style="background: var(--oxford-crimson);">
+                        <i class="fas fa-trash-alt me-2"></i> Purger les Archives
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

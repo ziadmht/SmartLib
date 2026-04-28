@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% block title %}Nouveau Prêt - SmartLib Oxford{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
+            <i class="fas fa-file-invoice me-3"></i>Enregistrer un Nouveau Prêt
+        </h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-oxford-blue text-white py-3 border-bottom border-gold-leaf" style="background: var(--oxford-blue) !important;">
+                    <h5 class="mb-0 text-uppercase letter-spacing-2 fw-bold small"><i class="fas fa-edit me-2"></i> Formulaire de Sortie d'Ouvrage</h5>
+                </div>
+                <div class="card-body p-5 bg-white" style="background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Sélection Adhérent -->
+                        <div class="mb-5">
+                            <label for="adherent" class="small fw-bold text-uppercase mb-3 d-block" style="letter-spacing: 2px;">1. Sélectionner le Membre</label>
+                            <select name="adherent" id="adherent" class="form-select form-select-lg rounded-0 border-2 border-dark" required>
+                                <option value="" selected disabled>--- Rechercher un adhérent ---</option>
+                                {% for adh in adherents %}
+                                <option value="{{ adh.id }}">{{ adh.username|upper }} ({{ adh.email }})</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted italic">Seuls les membres actifs sans pénalités apparaissent dans le registre.</small>
+                        </div>
+
+                        <!-- Sélection Livre -->
+                        <div class="mb-5">
+                            <label for="livre" class="small fw-bold text-uppercase mb-3 d-block" style="letter-spacing: 2px;">2. Sélectionner l'Ouvrage</label>
+                            <select name="livre" id="livre" class="form-select form-select-lg rounded-0 border-2 border-dark" required>
+                                <option value="" selected disabled>--- Rechercher un livre disponible ---</option>
+                                {% for livre in livres %}
+                                <option value="{{ livre.id }}">{{ livre.titre }} - par {{ livre.auteur }} (Stock: {{ livre.quantite_disponible }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Info Date -->
+                        <div class="alert alert-light border border-2 border-gold-brass rounded-0 p-4 mb-5">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-check fa-2x text-oxford-blue"></i>
+                                </div>
+                                <div class="col">
+                                    <p class="mb-0 small text-uppercase fw-bold letter-spacing-1">Informations Légales</p>
+                                    <p class="mb-0">Date de sortie : <strong>{{ aujourdhui|date:"d F Y" }}</strong></p>
+                                    <p class="mb-0">Date de retour impérative : <strong>Dans 15 jours</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'emprunt_liste' %}" class="btn btn-outline-dark btn-lg px-4 rounded-0 flex-grow-1">Annuler</a>
+                            <button type="submit" class="btn btn-academic btn-lg px-5 shadow flex-grow-1">
+                                <i class="fas fa-stamp me-2"></i> Valider le Prêt Officiel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
