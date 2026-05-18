@@ -46,7 +46,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-5 border-bottom border-2 border-light pb-4">
                     <div>
                         <h1 class="display-3 fw-bold text-oxford-blue mb-1" style="font-family: 'Cinzel';">{{ livre.titre }}</h1>
-                        <h4 class="text-rouge-roi fw-bold italic" style="font-family: 'Playfair Display';">Par l'illustre <span class="text-dore">{{ livre.auteur_fk.nom }}</span></h4>
+                        <h4 class="text-rouge-roi fw-bold italic" style="font-family: 'Playfair Display';">Par l'illustre <span class="text-dore">{{ livre.auteur_fk.nom|default:livre.auteur }}</span></h4>
                         
                         <!-- Note Moyenne (Stars) -->
                         <div class="mt-2 text-warning">
@@ -71,6 +71,8 @@
                     <div class="col-md-3 text-center">
                         {% if livre.auteur_fk.photo %}
                         <img src="{{ livre.auteur_fk.photo.url }}" class="rounded-circle border border-4 border-white shadow-lg" style="width: 130px; height: 130px; object-fit: cover;">
+                        {% elif livre.auteur_photo %}
+                        <img src="{{ livre.auteur_photo.url }}" class="rounded-circle border border-4 border-white shadow-lg" style="width: 130px; height: 130px; object-fit: cover;">
                         {% else %}
                         <div class="rounded-circle bg-oxford-blue text-white d-inline-flex align-items-center justify-content-center" style="width: 130px; height: 130px;">
                             <i class="fas fa-user-edit fa-3x opacity-50"></i>
@@ -80,14 +82,14 @@
                     <div class="col-md-9 mt-3 mt-md-0">
                         <div class="d-flex justify-content-between">
                             <h5 class="fw-bold text-oxford-blue mb-2"><i class="fas fa-feather-pointed text-rouge-roi me-2"></i>Note Biographique</h5>
-                            {% if user.est_bibliothecaire %}
+                            {% if user.est_bibliothecaire and livre.auteur_fk %}
                             <a href="{% url 'auteur_modifier' livre.auteur_fk.pk %}" class="small text-rouge-roi fw-bold text-decoration-none">
                                 <i class="fas fa-pen me-1"></i>MODIFIER
                             </a>
                             {% endif %}
                         </div>
                         <p class="text-muted small italic mb-0" style="line-height: 1.6; text-align: justify;">
-                            {{ livre.auteur_fk.biographie|default:"Le scribe n'a pas encore consigné les détails de la vie de cet auteur."|linebreaksbr }}
+                            {{ livre.auteur_fk.biographie|default:livre.auteur_biographie|default:"Le scribe n'a pas encore consigné les détails de la vie de cet auteur."|linebreaksbr }}
                         </p>
                     </div>
                 </div>

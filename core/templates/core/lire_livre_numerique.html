@@ -10,7 +10,7 @@
             <h2 class="fw-bold text-oxford-blue mb-0" style="font-family: 'Cinzel';">
                 <i class="fas fa-book-open text-rouge-roi me-3"></i>{{ livre.titre }}
             </h2>
-            <small class="text-muted italic">Par l'illustre {{ livre.auteur_fk.nom }}</small>
+            <small class="text-muted italic">Par l'illustre {{ livre.auteur_fk.nom|default:livre.auteur }}</small>
         </div>
         <div class="btn-group shadow-sm">
             <a href="{% url 'e_library' %}" class="btn btn-dark fw-bold">
