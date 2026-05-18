@@ -1,11 +1,11 @@
 {% extends 'core/base.html' %}
-{% block title %}Acquisition de Privilèges - SmartLib Oxford{% endblock %}
+{% block title %}Acquisition de Privilèges - SmartLib Royale{% endblock %}
 
 {% block content %}
 <div class="reveal">
-    <div class="text-center mb-5 pb-3 border-bottom border-4 border-gold-leaf">
-        <h1 class="display-4 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">Sceaux de Privilège</h1>
-        <p class="text-muted text-uppercase letter-spacing-3">Choisissez votre niveau d'accès et votre mode de règlement</p>
+    <div class="text-center mb-5 pb-3 border-bottom border-3 border-rouge-roi">
+        <h1 class="display-4 fw-bold text-bois-fonce">Sceaux de <span style="color: var(--dore);">Privilège</span></h1>
+        <p class="text-rouge-roi text-uppercase fw-bold letter-spacing-2 small">Choisissez votre niveau d'accès au Sanctuaire du Savoir</p>
     </div>
 
     <form method="post" id="paymentForm">
@@ -13,93 +13,128 @@
         <div class="row g-5">
             <!-- 1. SÉLECTION DU PLAN -->
             <div class="col-lg-7">
-                <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small letter-spacing-2">1. Sélection du Niveau d'Accès</h4>
+                <div class="mb-5">
+                    <h4 class="fw-bold text-bois-fonce mb-4 text-uppercase small"><i class="fas fa-hourglass-half me-2 text-rouge-roi"></i> 1. Rythme de Règlement</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <input type="radio" class="btn-check" name="duree" id="mensuel" value="mensuel" checked>
+                            <label class="btn btn-outline-bois w-100 py-3 fw-bold" for="mensuel">MENSUEL</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="radio" class="btn-check" name="duree" id="annuel" value="annuel">
+                            <label class="btn btn-outline-bois w-100 py-3 fw-bold position-relative" for="annuel">
+                                ANNUEL
+                                <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success border border-white" style="font-size: 0.6rem;">-15% ÉCONOMIQUE</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold text-bois-fonce mb-4 text-uppercase small"><i class="fas fa-scroll me-2 text-rouge-roi"></i> 2. Sélectionnez votre Sceau</h4>
                 <div class="row g-4">
                     {% for plan in plans %}
                     <div class="col-md-6">
                         <input type="radio" class="btn-check" name="plan_id" id="plan{{ plan.id }}" value="{{ plan.id }}" {% if forloop.first %}checked{% endif %} required>
-                        <label class="card card-vault h-100 p-4 border-2 shadow-sm text-center cursor-pointer w-100" for="plan{{ plan.id }}">
+                        <label class="card-plan h-100 p-4 border-2 text-center cursor-pointer w-100" for="plan{{ plan.id }}">
                             <div class="mb-3">
                                 {% if plan.nom == 'Premium' %}
-                                    <i class="fas fa-crown fa-2x text-gold-leaf"></i>
+                                    <div class="badge-royal mb-2" style="font-size: 0.6rem;"><i class="fas fa-crown me-2"></i>PRESTIGE MAX</div>
+                                    <i class="fas fa-gem fa-3x text-dore"></i>
                                 {% else %}
-                                    <i class="fas fa-feather-alt fa-2x text-oxford-blue"></i>
+                                    <div class="badge bg-bois-fonce text-white mb-2" style="font-size: 0.6rem;">ESSENTIEL</div>
+                                    <i class="fas fa-feather-alt fa-3x text-bois-fonce"></i>
                                 {% endif %}
                             </div>
-                            <h5 class="fw-bold mb-1">{{ plan.nom|upper }}</h5>
-                            <div class="h3 fw-bold mb-3">{{ plan.prix_mensuel }} MAD</div>
-                            <ul class="list-unstyled text-start small mb-0">
-                                <li><i class="fas fa-check me-2 text-success"></i>Quota: {{ plan.limite_emprunts_physiques }} livres</li>
-                                <li><i class="fas {% if plan.acces_e_library %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>E-Library</li>
-                            </ul>
+                            <h3 class="fw-bold text-bois-fonce mb-1">{{ plan.nom|upper }}</h3>
+                            
+                            <!-- Prix Dynamique -->
+                            <div class="h3 fw-bold text-rouge-roi mb-3">
+                                <span class="price-val" data-mensuel="{{ plan.prix_mensuel }}" data-annuel="{{ plan.prix_annuel }}">{{ plan.prix_mensuel }}</span>
+                                <small class="h6 price-unit">MAD/mois</small>
+                            </div>
+                            
+                            <div class="p-3 rounded-3 mb-0" style="background: rgba(255,255,255,0.5);">
+                                <ul class="list-unstyled text-start small mb-0">
+                                    <li class="mb-2"><i class="fas fa-check-circle me-2 text-success"></i><strong>{{ plan.limite_emprunts_physiques }}</strong> Livres physiques</li>
+                                    <li>
+                                        <i class="fas {% if plan.acces_e_library %}fa-check-circle text-success{% else %}fa-times-circle text-muted{% endif %} me-2"></i>
+                                        Accès E-Library
+                                    </li>
+                                </ul>
+                            </div>
                         </label>
                     </div>
                     {% endfor %}
                 </div>
-
-                <div class="mt-5">
-                    <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small letter-spacing-2">2. Période de Validité</h4>
-                    <div class="btn-group w-100 shadow-sm">
-                        <input type="radio" class="btn-check" name="duree" id="mensuel" value="mensuel" checked>
-                        <label class="btn btn-outline-dark py-3 fw-bold" for="mensuel">MENSUEL (30 Jours)</label>
-                        
-                        <input type="radio" class="btn-check" name="duree" id="annuel" value="annuel">
-                        <label class="btn btn-outline-dark py-3 fw-bold" for="annuel">ANNUEL (365 Jours - Économique)</label>
-                    </div>
-                </div>
             </div>
 
-            <!-- 2. TERMINAL DE PAIEMENT -->
+            <!-- 2. TERMINAL DE PAIEMENT VINTAGE -->
             <div class="col-lg-5">
-                <div class="card shadow-2xl border-0 bg-oxford-blue text-white overflow-hidden">
-                    <div class="card-header bg-dark py-3 text-center border-bottom border-gold-leaf">
-                        <h5 class="mb-0 text-uppercase small fw-bold">Terminal de Règlement Sécurisé</h5>
+                <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+                    <div class="card-header bg-bois-fonce text-dore py-3 text-center border-bottom border-3 border-rouge-roi">
+                        <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-shield-alt me-2"></i> Terminal de Règlement Royal</h5>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-4" style="background: var(--parchemin);">
                         <div class="mb-4">
-                            <label class="small text-gold-leaf text-uppercase fw-bold mb-3 d-block">Mode de Paiement</label>
+                            <label class="small text-bois-fonce text-uppercase fw-bold mb-3 d-block">Méthode d'Authentification</label>
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <input type="radio" class="btn-check" name="payment_method" id="card" checked>
-                                    <label class="btn btn-outline-light w-100 py-3" for="card">
+                                    <input type="radio" class="btn-check" name="payment_method" id="card" value="card" checked>
+                                    <label class="btn btn-outline-dark w-100 py-2 fw-bold" for="card">
                                         <i class="fas fa-credit-card me-2"></i> CARTE
                                     </label>
                                 </div>
                                 <div class="col-6">
-                                    <input type="radio" class="btn-check" name="payment_method" id="paypal">
-                                    <label class="btn btn-outline-light w-100 py-3" for="paypal">
+                                    <input type="radio" class="btn-check" name="payment_method" id="paypal" value="paypal">
+                                    <label class="btn btn-outline-dark w-100 py-2 fw-bold" for="paypal">
                                         <i class="fab fa-paypal me-2"></i> PAYPAL
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Champs Carte (Simulation) -->
+                        <!-- Champs CARTE -->
                         <div id="cardFields">
                             <div class="mb-3">
-                                <label class="x-small text-uppercase opacity-50">Numéro de Sceau Bancaire</label>
-                                <input type="text" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="XXXX XXXX XXXX XXXX">
+                                <label class="x-small text-uppercase fw-bold text-muted">Titulaire de la Carte</label>
+                                <input type="text" name="card_name" class="form-control border-bois-clair p-2" placeholder="Ex: MOHAMED ALAMI" pattern="[A-Z\s]+" title="Veuillez entrer le nom en majuscules" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="x-small text-uppercase fw-bold text-muted">Numéro du Sceau Bancaire</label>
+                                <input type="text" name="card_number" class="form-control border-bois-clair p-2" placeholder="4xxx xxxx xxxx xxxx" maxlength="19" pattern="\d{4}\s\d{4}\s\d{4}\s\d{4}" required>
                             </div>
                             <div class="row">
                                 <div class="col-6">
-                                    <label class="x-small text-uppercase opacity-50">Expiration</label>
-                                    <input type="text" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="MM/YY">
+                                    <label class="x-small text-uppercase fw-bold text-muted">Expiration</label>
+                                    <input type="text" name="card_expiry" class="form-control border-bois-clair p-2" placeholder="MM/YY" maxlength="5" pattern="\d{2}/\d{2}" required>
                                 </div>
                                 <div class="col-6">
-                                    <label class="x-small text-uppercase opacity-50">Code Secret</label>
-                                    <input type="password" class="form-control bg-dark border-secondary text-white rounded-0" placeholder="CVV">
+                                    <label class="x-small text-uppercase fw-bold text-muted">Code Secret</label>
+                                    <input type="text" name="card_cvv" class="form-control border-bois-clair p-2" placeholder="CVV" maxlength="3" pattern="\d{3}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Champs PAYPAL (Caché par défaut) -->
+                        <div id="paypalFields" style="display: none;">
+                            <div class="p-4 rounded-3 text-center border border-primary mb-3" style="background: rgba(0, 112, 186, 0.05);">
+                                <i class="fab fa-paypal fa-3x text-primary mb-3"></i>
+                                <h6 class="fw-bold">Connexion Sécurisée à PayPal</h6>
+                                <p class="small text-muted mb-3">Vous allez être redirigé vers l'interface de paiement cryptée.</p>
+                                <div class="mb-3">
+                                    <input type="email" name="paypal_email" id="paypalEmail" class="form-control border-primary p-2" placeholder="adresse@email.com">
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-5">
-                            <button type="submit" class="btn btn-academic w-100 py-3 fw-bold shadow-lg">
-                                <i class="fas fa-lock me-2"></i> AUTHENTIFIER LE PAIEMENT
+                            <button type="submit" class="btn-royal w-100 py-3 fw-bold shadow-lg" id="submitBtn">
+                                <i class="fas fa-stamp me-2 text-dore"></i> AUTHENTIFIER LE RÈGLEMENT
                             </button>
                         </div>
                     </div>
-                    <div class="card-footer bg-black py-2 text-center">
-                        <small class="x-small opacity-50"><i class="fas fa-shield-alt me-2"></i>Cryptage Oxford 256-bit actif</small>
+                    <div class="card-footer bg-bois-fonce py-2 text-center text-dore">
+                        <small class="x-small"><i class="fas fa-lock me-2"></i>Cryptage Royal 256-bit actif</small>
                     </div>
                 </div>
             </div>
@@ -107,14 +142,83 @@
     </form>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cardRadio = document.getElementById('card');
+        const paypalRadio = document.getElementById('paypal');
+        const cardFields = document.getElementById('cardFields');
+        const paypalFields = document.getElementById('paypalFields');
+        const submitBtn = document.getElementById('submitBtn');
+        const cardInputs = cardFields.querySelectorAll('input');
+        const paypalInputs = paypalFields.querySelectorAll('input');
+
+        function toggleFields() {
+            if (cardRadio.checked) {
+                cardFields.style.display = 'block';
+                paypalFields.style.display = 'none';
+                cardInputs.forEach(i => i.required = true);
+                paypalInputs.forEach(i => i.required = false);
+                submitBtn.innerHTML = '<i class="fas fa-stamp me-2 text-dore"></i> AUTHENTIFIER LE RÈGLEMENT';
+            } else {
+                cardFields.style.display = 'none';
+                paypalFields.style.display = 'block';
+                cardInputs.forEach(i => i.required = false);
+                paypalInputs.forEach(i => i.required = true);
+                submitBtn.innerHTML = '<i class="fab fa-paypal me-2 text-dore"></i> CONTINUER VERS PAYPAL';
+            }
+        }
+
+        cardRadio.addEventListener('change', toggleFields);
+        paypalRadio.addEventListener('change', toggleFields);
+        
+        // Gestion dynamique des prix (Mensuel vs Annuel)
+        const mensuelRadio = document.getElementById('mensuel');
+        const annuelRadio = document.getElementById('annuel');
+        const priceVals = document.querySelectorAll('.price-val');
+        const priceUnits = document.querySelectorAll('.price-unit');
+
+        function updatePrices() {
+            const isAnnuel = annuelRadio.checked;
+            priceVals.forEach(span => {
+                span.innerText = isAnnuel ? span.dataset.annuel : span.dataset.mensuel;
+            });
+            priceUnits.forEach(small => {
+                small.innerText = isAnnuel ? "MAD / an" : "MAD / mois";
+            });
+        }
+
+        mensuelRadio.addEventListener('change', updatePrices);
+        annuelRadio.addEventListener('change', updatePrices);
+        
+        // Initial calls
+        toggleFields();
+        updatePrices();
+    });
+</script>
+
 <style>
     .cursor-pointer { cursor: pointer; }
-    .btn-check:checked + .card-vault {
-        border-color: var(--gold-leaf) !important;
-        background: #fffdf5 !important;
-        transform: scale(1.05);
+    .card-plan {
+        background: rgba(255, 255, 255, 0.4);
+        border: 2px solid var(--bois-clair);
+        border-radius: 12px;
+        transition: all 0.3s ease;
     }
-    .x-small { font-size: 0.65rem; }
-    .shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+    .btn-check:checked + .card-plan {
+        border-color: var(--rouge-roi) !important;
+        background: white !important;
+        transform: scale(1.03);
+        box-shadow: 0 10px 20px var(--ombre) !important;
+    }
+    .btn-outline-bois {
+        border: 2px solid var(--bois-clair);
+        color: var(--bois-fonce);
+    }
+    .btn-check:checked + .btn-outline-bois {
+        background-color: var(--rouge-roi);
+        border-color: var(--rouge-roi);
+        color: white;
+    }
+    .x-small { font-size: 0.7rem; }
 </style>
 {% endblock %}

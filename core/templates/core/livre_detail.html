@@ -1,112 +1,283 @@
 {% extends 'core/base.html' %}
-{% block title %}{{ livre.titre }} - Registre Officiel{% endblock %}
+{% block title %}{{ livre.titre }} - Registre du Sanctuaire{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Archives Section -->
-    <div class="col-md-4 mb-5 text-center">
-        <div class="card p-2 shadow-2-strong bg-dark" style="border: 4px solid var(--gold-brass);">
-            {% if livre.couverture %}
-            <img src="{{ livre.couverture.url }}" class="img-fluid rounded-0 shadow" alt="{{ livre.titre }}" style="filter: sepia(10%);">
-            {% else %}
-            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 500px;">
-                <i class="fas fa-book fa-5x opacity-25"></i>
+<div class="reveal">
+    <div class="row g-5">
+        <!-- Colonne Gauche : L'Objet Physique -->
+        <div class="col-lg-4">
+            <div class="p-3 bg-bois-fonce shadow-2xl mb-4" style="border: 6px double var(--dore); border-radius: 15px;">
+                {% if livre.couverture %}
+                <img src="{{ livre.couverture.url }}" class="img-fluid rounded shadow" alt="{{ livre.titre }}" style="border: 2px solid var(--dore); filter: sepia(10%);">
+                {% else %}
+                <div class="bg-dark text-dore d-flex align-items-center justify-content-center rounded" style="height: 500px;">
+                    <i class="fas fa-book-dead fa-5x opacity-25"></i>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-        
-        <div class="mt-4 card p-4 text-start border-2">
-            <h6 class="fw-bold text-uppercase opacity-50 small mb-3 border-bottom pb-2">Données Bibliographiques</h6>
-            <p class="mb-2"><strong class="small">INDEX ISBN :</strong> <span class="text-oxford-blue">{{ livre.isbn|default:"---" }}</span></p>
-            <p class="mb-2"><strong class="small">ARCHIVÉ LE :</strong> <span class="text-oxford-blue">{{ livre.date_ajout|date:"d M Y" }}</span></p>
-            <p class="mb-2"><strong class="small">RESTE EN RAYON :</strong> <span class="badge-academic">{{ livre.quantite_disponible }}</span></p>
             
-            {% if user.est_administrateur or user.est_bibliothecaire %}
-            <hr>
-            <a href="{% url 'livre_modifier' livre.pk %}" class="btn btn-outline-dark btn-sm w-100 rounded-0 mt-2">
-                <i class="fas fa-pen-nib me-2"></i> Rectifier l'Entrée
-            </a>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Analysis Section -->
-    <div class="col-md-8 ps-md-5">
-        <div class="card shadow-lg p-5 rounded-0 border-0" style="background-image: url('https://www.transparenttextures.com/patterns/notebook.png');">
-            <div class="d-flex justify-content-between align-items-start mb-5 border-bottom border-4 border-oxford-blue pb-4">
-                <div>
-                    <h1 class="display-3 fw-bold text-oxford-blue mb-1" style="font-family: 'Libre Baskerville';">{{ livre.titre }}</h1>
-                    <h4 class="text-oxford-crimson fw-bold">Par le Dr. {{ livre.auteur }}</h4>
+            <div class="card border-0 shadow-lg p-4" style="background: white; border-top: 4px solid var(--oxford-blue) !important;">
+                <h5 class="fw-bold text-oxford-blue text-uppercase small mb-4 border-bottom pb-2">Données de l'Archive</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small fw-bold text-muted">INDEX ISBN</span>
+                    <span class="small fw-bold text-oxford-blue">{{ livre.isbn|default:"---" }}</span>
                 </div>
-                <div class="text-end text-muted small">
-                    <div>REGISTRE NO.</div>
-                    <div class="fw-bold h4">OX-{{ livre.pk|stringformat:"04d" }}</div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small fw-bold text-muted">ANNÉE</span>
+                    <span class="small fw-bold text-oxford-blue">{{ livre.annee_publication|default:"---" }}</span>
                 </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="small fw-bold text-muted">STOCK RÉEL</span>
+                    <span class="badge bg-oxford-blue text-dore px-3">{{ livre.quantite_disponible }} unités</span>
+                </div>
+                
+                {% if user.est_bibliothecaire %}
+                <hr>
+                <a href="{% url 'livre_modifier' livre.pk %}" class="btn btn-outline-dark btn-sm w-100 fw-bold">
+                    <i class="fas fa-pen-nib me-2"></i>RECTIFIER LE REGISTRE
+                </a>
+                {% endif %}
             </div>
+        </div>
 
-            <!-- Author Biography -->
-            <div class="row align-items-center mb-5 p-4" style="background: rgba(0,33,71,0.03); border: 1px solid var(--gold-brass);">
-                <div class="col-md-3 text-center">
-                    {% if livre.auteur_photo %}
-                    <img src="{{ livre.auteur_photo.url }}" class="rounded-0 shadow border border-2 border-white" style="width: 120px; height: 120px; object-fit: cover; filter: grayscale(50%);">
-                    {% else %}
-                    <div class="bg-dark text-white d-inline-flex align-items-center justify-content-center border border-2 border-gold-brass" style="width: 120px; height: 120px;">
-                        <i class="fas fa-user-graduate fa-2x opacity-50"></i>
+        <!-- Colonne Droite : Le Savoir Contenu -->
+        <div class="col-lg-8">
+            <div class="p-5 bg-white shadow-lg h-100" style="border-radius: 20px; border-left: 8px solid var(--rouge-roi);">
+                <div class="d-flex justify-content-between align-items-start mb-5 border-bottom border-2 border-light pb-4">
+                    <div>
+                        <h1 class="display-3 fw-bold text-oxford-blue mb-1" style="font-family: 'Cinzel';">{{ livre.titre }}</h1>
+                        <h4 class="text-rouge-roi fw-bold italic" style="font-family: 'Playfair Display';">Par l'illustre <span class="text-dore">{{ livre.auteur_fk.nom }}</span></h4>
+                        
+                        <!-- Note Moyenne (Stars) -->
+                        <div class="mt-2 text-warning">
+                            {% for i in livre.get_etoiles_moyenne %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% if livre.get_note_moyenne > 0 %}
+                                <span class="text-muted ms-2 fw-bold small">{{ livre.get_note_moyenne }}/5 (Avis de la Communauté)</span>
+                            {% else %}
+                                <span class="text-muted ms-2 small italic">Soyez le premier à évaluer ce manuscrit</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
+                    <div class="text-end">
+                        <div class="small fw-bold text-rouge-roi">REGISTRE NO.</div>
+                        <div class="h2 fw-bold text-oxford-blue">OX-{{ livre.pk|stringformat:"04d" }}</div>
+                    </div>
                 </div>
-                <div class="col-md-9 mt-3 mt-md-0">
-                    <h5 class="fw-bold text-oxford-blue mb-2"><i class="fas fa-feather text-oxford-crimson me-2"></i>Note sur l'Auteur</h5>
-                    <p class="text-muted small italic mb-0" style="line-height: 1.6; text-align: justify;">
-                        {{ livre.auteur_biographie|default:"Aucune note biographique archivée pour ce contributeur."|linebreaksbr }}
+
+                <!-- Portrait de l'Auteur -->
+                <div class="row align-items-center mb-5 p-4 rounded-4 shadow-inner" style="background: var(--parchemin);">
+                    <div class="col-md-3 text-center">
+                        {% if livre.auteur_fk.photo %}
+                        <img src="{{ livre.auteur_fk.photo.url }}" class="rounded-circle border border-4 border-white shadow-lg" style="width: 130px; height: 130px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-oxford-blue text-white d-inline-flex align-items-center justify-content-center" style="width: 130px; height: 130px;">
+                            <i class="fas fa-user-edit fa-3x opacity-50"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9 mt-3 mt-md-0">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="fw-bold text-oxford-blue mb-2"><i class="fas fa-feather-pointed text-rouge-roi me-2"></i>Note Biographique</h5>
+                            {% if user.est_bibliothecaire %}
+                            <a href="{% url 'auteur_modifier' livre.auteur_fk.pk %}" class="small text-rouge-roi fw-bold text-decoration-none">
+                                <i class="fas fa-pen me-1"></i>MODIFIER
+                            </a>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted small italic mb-0" style="line-height: 1.6; text-align: justify;">
+                            {{ livre.auteur_fk.biographie|default:"Le scribe n'a pas encore consigné les détails de la vie de cet auteur."|linebreaksbr }}
+                        </p>
+                    </div>
+                </div>
+
+                <h5 class="text-uppercase fw-bold letter-spacing-2 mb-4 text-oxford-blue"><i class="fas fa-scroll me-2 text-rouge-roi"></i>Résumé Analytique</h5>
+                <div class="p-4 rounded-4 border-2 border-dashed border-bois-clair mb-5" style="background: rgba(212, 163, 115, 0.05);">
+                    <p class="lead text-bois-fonce lh-lg mb-0" style="text-align: justify; font-family: 'Playfair Display'; font-size: 1.25rem;">
+                        {{ livre.resume|default:"Contenu non encore transcrit dans les archives royales."|linebreaksbr }}
                     </p>
                 </div>
-            </div>
 
-            <h5 class="text-uppercase fw-bold letter-spacing-2 mb-4"><i class="fas fa-align-left text-oxford-crimson me-2"></i>Sommaire & Analyse</h5>
-            <p class="lead text-dark lh-lg mb-5" style="text-align: justify; font-family: 'Crimson Pro'; font-size: 1.3rem;">
-                {{ livre.resume|default:"Contenu non encore numérisé."|linebreaksbr }}
-            </p>
-
-            <div class="mt-auto pt-5">
-                {% if user.est_adherent %}
-                <div class="d-flex gap-4">
-                    {% if peut_emprunter and livre.est_disponible_physique %}
-                    <a href="{% url 'emprunt_ajouter' livre.pk %}" class="btn-academic btn-lg px-5 shadow flex-grow-1 text-center text-decoration-none" onclick="return confirm('Confirmez-vous la sollicitation de cet ouvrage ?')">
-                        <i class="fas fa-stamp me-2"></i> Solliciter cet Ouvrage
-                    </a>
-                    {% elif not peut_emprunter %}
-                    <div class="alert alert-warning rounded-0 border-2 w-100 mb-0">
-                        <i class="fas fa-exclamation-triangle me-2"></i> {{ message_emprunt }}
-                    </div>
-                    {% else %}
-                    <div class="alert alert-danger rounded-0 border-2 w-100 mb-0">
-                        <i class="fas fa-clock me-2"></i> Indisponible : En cours de consultation par un autre membre.
+                <div class="mt-auto pt-4 border-top border-light mb-5">
+                    {% if user.est_adherent %}
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            {% if peut_emprunter and livre.est_disponible_physique %}
+                            <form action="{% url 'emprunt_ajouter' livre.pk %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-royal w-100 py-3 shadow-lg border-0" onclick="return confirm('Confirmez-vous la sollicitation de ce manuscrit ?')">
+                                    <i class="fas fa-stamp me-2"></i>SOLLICITER CE MANUSCRIT
+                                </button>
+                            </form>
+                            {% elif not peut_emprunter %}
+                            <div class="alert alert-warning border-3 d-flex align-items-center mb-0">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3 text-rouge-roi"></i>
+                                <div class="small fw-bold">{{ message_emprunt }}</div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-danger border-3 d-flex align-items-center mb-0">
+                                <i class="fas fa-hourglass-end fa-2x me-3"></i>
+                                <div class="small fw-bold">ÉPUISÉ : Ce manuscrit est actuellement consulté par un autre membre.</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {% if livre.a_version_numerique %}
+                            <a href="{% url 'e_library' %}" class="btn btn-dark w-100 py-3 fw-bold border-2 border-dore text-dore shadow-lg">
+                                <i class="fas fa-eye me-2"></i>LIRE DIGITAL
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
+                </div>
+
+                <!-- SECTION COMMUNITY (AVIS) -->
+                <div class="mt-5 pt-5">
+                    <h5 class="text-uppercase fw-bold letter-spacing-2 mb-4 text-oxford-blue">
+                        <i class="fas fa-users-viewfinder me-2 text-rouge-roi"></i>Voix de la Communauté
+                    </h5>
                     
-                    {% if livre.a_version_numerique %}
-                    <a href="{% url 'e_library' %}" class="btn btn-outline-dark btn-lg px-5 rounded-0">
-                        <i class="fas fa-microscope me-2"></i> Analyse Digitale
-                    </a>
-                    {% endif %}
-                </div>
-                {% endif %}
+                    {% if user.is_authenticated %}
+                    <div class="p-4 rounded-4 shadow-lg mb-5 border-start border-4 border-dore" style="background: white;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-oxford-blue text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <h6 class="fw-bold text-oxford-blue mb-0">Laissez votre empreinte dans les archives</h6>
+                        </div>
 
-                {% if user.est_bibliothecaire %}
-                <div class="mt-4 d-flex gap-3">
-                    <a href="{% url 'livre_modifier' livre.pk %}" class="btn btn-academic bg-dark text-white px-5 flex-grow-1 text-center text-decoration-none">
-                        <i class="fas fa-edit me-2"></i> Éditer le Registre
-                    </a>
-                    {% if user.est_administrateur %}
-                    <a href="{% url 'livre_supprimer' livre.pk %}" class="btn btn-academic px-5 flex-grow-1 text-center text-decoration-none" style="background: var(--oxford-crimson);">
-                        <i class="fas fa-trash-alt me-2"></i> Purger les Archives
-                    </a>
+                        <form action="{% url 'donner_avis' livre.pk %}" method="POST" id="avisForm">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Notez cet ouvrage :</label>
+                                <div class="rating-prestige">
+                                    <input type="radio" value="5" name="note" id="star5" {% if mon_avis.note == 5 %}checked{% endif %}><label for="star5" title="Exceptionnel"><i class="fas fa-star"></i></label>
+                                    <input type="radio" value="4" name="note" id="star4" {% if mon_avis.note == 4 %}checked{% endif %}><label for="star4" title="Très bon"><i class="fas fa-star"></i></label>
+                                    <input type="radio" value="3" name="note" id="star3" {% if not mon_avis or mon_avis.note == 3 %}checked{% endif %}><label for="star3" title="Moyen"><i class="fas fa-star"></i></label>
+                                    <input type="radio" value="2" name="note" id="star2" {% if mon_avis.note == 2 %}checked{% endif %}><label for="star2" title="Décevant"><i class="fas fa-star"></i></label>
+                                    <input type="radio" value="1" name="note" id="star1" {% if mon_avis.note == 1 %}checked{% endif %}><label for="star1" title="Médiocre"><i class="fas fa-star"></i></label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="commentaire" class="form-control border-0 shadow-inner p-3" rows="3" placeholder="Quelles émotions ce manuscrit a-t-il éveillé en vous ?" style="background: var(--parchemin); border-radius: 12px; font-family: 'Playfair Display', serif;" required>{{ mon_avis.commentaire|default:"" }}</textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-oxford-blue px-5 py-2 fw-bold shadow-sm rounded-pill">
+                                    <i class="fas fa-feather-pointed me-2"></i>SCELLER MON AVIS
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                     {% endif %}
+
+                    <div class="avis-list scroll-prestige" style="max-height: 600px; overflow-y: auto; padding-right: 15px;">
+                        {% for avis in avis_liste %}
+                        <div class="mb-4 p-4 rounded-4 shadow-sm bg-white border border-light position-relative reveal" style="transition: 0.3s;">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="position-relative">
+                                        {% if avis.adherent.photo_profil %}
+                                            <img src="{{ avis.adherent.photo_profil.url }}" class="rounded-circle shadow-sm border border-2 border-dore" width="50" height="50" style="object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-oxford-blue text-dore rounded-circle d-flex align-items-center justify-content-center shadow-sm border border-2 border-dore" style="width: 50px; height: 50px; font-weight: 800;">
+                                                {{ avis.adherent.username|slice:":1"|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-2 border-white" style="width: 12px; height: 12px;"></div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0 fw-bold text-oxford-blue">{{ avis.adherent.username }}</h6>
+                                        <small class="text-muted text-uppercase x-small fw-bold">{{ avis.adherent.get_role_display }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-warning mb-1">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= avis.note %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted italic" style="font-size: 0.75rem;">{{ avis.date_publication|date:"d F Y" }}</small>
+                                </div>
+                            </div>
+                            <div class="ps-4 border-start border-3 border-light ms-2">
+                                <p class="mb-0 text-dark opacity-90 italic" style="font-family: 'Playfair Display', serif; font-size: 1.1rem; line-height: 1.6;">
+                                    "{{ avis.commentaire }}"
+                                </p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 rounded-4 border-2 border-dashed border-light bg-light">
+                            <i class="fas fa-comment-slash fa-3x mb-3 text-muted opacity-25"></i>
+                            <h5 class="text-muted italic">Les archives sont silencieuses...</h5>
+                            <p class="small text-muted mb-0">Soyez le premier à graver vos impressions sur ce manuscrit.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .shadow-2xl { box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+    .shadow-inner { box-shadow: inset 0 2px 15px rgba(0,0,0,0.1); }
+    
+    /* Star Rating Prestige Style */
+    .rating-prestige {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    .rating-prestige input {
+        display: none;
+    }
+    .rating-prestige label {
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #ddd;
+        transition: 0.2s;
+    }
+    .rating-prestige label:hover,
+    .rating-prestige label:hover ~ label,
+    .rating-prestige input:checked ~ label {
+        color: #ffc107;
+        transform: scale(1.1);
+    }
+    .rating-prestige label:active {
+        transform: scale(0.9);
+    }
+
+    .scroll-prestige::-webkit-scrollbar {
+        width: 8px;
+    }
+    .scroll-prestige::-webkit-scrollbar-track {
+        background: var(--parchemin);
+        border-radius: 10px;
+    }
+    .scroll-prestige::-webkit-scrollbar-thumb {
+        background: var(--dore);
+        border-radius: 10px;
+        border: 2px solid var(--parchemin);
+    }
+    
+    .x-small { font-size: 0.65rem; letter-spacing: 1px; }
+    
+    .avis-list .reveal:hover {
+        transform: translateX(10px);
+        background: var(--parchemin) !important;
+        border-color: var(--dore) !important;
+    }
+</style>
 {% endblock %}

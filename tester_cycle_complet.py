@@ -31,7 +31,8 @@ def tester_cycle_sanction():
         adherent=user, 
         livre=livre, 
         date_emprunt=date_emprunt,
-        date_retour_prevue=date_emprunt + timedelta(days=15)
+        date_retour_prevue=date_emprunt + timedelta(days=15),
+        statut='en_cours'
     )
     livre.decrementer_stock()
     

@@ -1,38 +1,45 @@
 {% extends 'core/base.html' %}
-{% block title %}Grand Commandement - SmartLib Oxford{% endblock %}
+{% block title %}Tableau de Bord - SmartLib Royale{% endblock %}
 
 {% block content %}
 <div class="reveal">
-    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
-        <div>
-            <h1 class="display-5 fw-bold text-oxford-blue mb-0" style="font-family: 'Libre Baskerville';">
-                {% if user.est_bibliothecaire %}Grand Commandement{% else %}Mon Espace Lecteur{% endif %}
+    <!-- HEADER PANORAMIQUE PRESTIGE -->
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-3 border-rouge-roi pb-3 position-relative overflow-hidden">
+        <div class="reveal-ink p-2">
+            <h1 class="display-4 fw-bold text-bois-fonce mb-0" style="letter-spacing: -1px;">
+                Bienvenue, <span class="text-rouge-roi">{{ user.username }}</span>
             </h1>
-            <p class="text-muted text-uppercase small letter-spacing-2 mt-2">Session du {{ today|date:"d F Y" }}</p>
+            <p class="text-bois-clair text-uppercase fw-bold letter-spacing-2 mt-2 small">
+                <i class="fas fa-feather-pointed me-2"></i> Chroniques du Sanctuaire • {{ today|date:"d F Y" }}
+            </p>
         </div>
-        <div class="text-end">
+        <div class="text-end z-3">
             {% if user.est_bibliothecaire %}
-                <span class="badge bg-oxford-blue px-4 py-2 border border-gold-brass text-gold-leaf">MODÉRATION ACTIVE</span>
+                <div class="wax-seal" title="Autorité Royale"><i class="fas fa-crown"></i></div>
+                <div class="small fw-bold text-rouge-roi mt-2">GARDIEN ACTIF</div>
             {% else %}
                 {% if statut_compte %}
-                <span class="badge bg-success badge-status"><i class="fas fa-check-circle me-1"></i> Compte en Règle</span>
+                <div class="wax-seal bg-success" style="background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);"><i class="fas fa-check"></i></div>
+                <div class="small fw-bold text-success mt-2">SCEAU VALIDE</div>
                 {% else %}
-                <span class="badge bg-danger badge-status pulse-retard"><i class="fas fa-exclamation-triangle me-1"></i> Compte Bloqué</span>
+                <div class="wax-seal" style="background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);"><i class="fas fa-ban"></i></div>
+                <div class="small fw-bold text-danger mt-2">ACCÈS RÉVOQUÉ</div>
                 {% endif %}
             {% endif %}
         </div>
     </div>
+
 {% if not user.est_bibliothecaire %}
     {% if not user.get_abonnement_actif %}
-    <!-- ALERTE SOUSCRIPTION PRIORITAIRE (J8) -->
+    <!-- ALERTE SOUSCRIPTION PRIORITAIRE -->
     <div class="row mb-5">
         <div class="col-12">
-            <div class="card card-vault border-top border-5 border-gold-leaf shadow-2xl p-5 text-center">
-                <i class="fas fa-crown fa-4x text-gold-leaf mb-4"></i>
-                <h2 class="fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">Activez vos Privilèges Académiques</h2>
-                <p class="lead text-muted mb-4">Vous n'avez actuellement aucun sceau de privilège actif. Souscrivez pour débloquer les prêts et la E-Library.</p>
+            <div class="card border-rouge-roi border-3 p-5 text-center shadow-lg" style="background: rgba(183, 28, 28, 0.05);">
+                <i class="fas fa-crown fa-4x text-dore mb-4"></i>
+                <h2 class="fw-bold text-bois-fonce">Activez vos Privilèges Royaux</h2>
+                <p class="lead text-muted mb-4">Votre accès aux archives est actuellement limité. Souscrivez à un sceau pour débloquer les prêts.</p>
                 <div class="d-flex justify-content-center">
-                    <a href="{% url 'souscrire_abonnement' %}" class="btn btn-academic px-5 py-3">
+                    <a href="{% url 'souscrire_abonnement' %}" class="btn-royal px-5 py-3">
                         <i class="fas fa-certificate me-2"></i> Choisir mon Sceau
                     </a>
                 </div>
@@ -43,71 +50,65 @@
 {% endif %}
 
 {% if user.est_bibliothecaire %}
-
-    <!-- ============================================================== -->
     <!-- DASHBOARD PERSONNEL (BIBLIO / ADMIN) -->
-    <!-- ============================================================== -->
-    
-    <!-- 1. KPIs FINANCIERS ET STOCK -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-success shadow-lg">
-                <div class="small fw-bold text-uppercase text-muted">Recettes Perçues</div>
-                <div class="display-6 fw-bold text-success">{{ recettes_totales }} <span class="h4">MAD</span></div>
-                <div class="mt-2 text-muted small italic">Total pénalités réglées</div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Recettes</div>
+                <div class="display-5 fw-bold text-rouge-roi">{{ recettes_totales }} <span class="h4">MAD</span></div>
+                <div class="mt-2 text-bois-fonce small fw-bold"><i class="fas fa-hand-holding-dollar me-1"></i> Source : Pénalités de retard réglées</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-oxford-blue shadow-lg">
-                <div class="small fw-bold text-uppercase text-muted">Archives Vivantes</div>
-                <div class="display-6 fw-bold text-oxford-blue">{{ total_livres }}</div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Archives</div>
+                <div class="display-5 fw-bold text-dore">{{ total_livres }}</div>
                 <div class="mt-2 text-muted small italic">Ouvrages au catalogue</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-warning shadow-lg">
-                <div class="small fw-bold text-uppercase text-muted">Stock Critique</div>
-                <div class="display-6 fw-bold text-warning">{{ stock_critique }}</div>
-                <div class="mt-2 text-muted small italic">Livres à 1 exemplaire ou moins</div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Stock Critique</div>
+                <div class="display-5 fw-bold text-cuir-vieilli">{{ stock_critique }}</div>
+                <div class="mt-2 text-muted small italic">Livres à faible stock</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-oxford-crimson shadow-lg">
-                <div class="small fw-bold text-uppercase text-muted">Alertes Retards</div>
-                <div class="display-6 fw-bold text-oxford-crimson">{{ retards_critiques }}</div>
-                <div class="mt-2"><a href="{% url 'emprunt_liste' %}" class="small text-decoration-none">Voir les retards →</a></div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Alertes</div>
+                <div class="display-5 fw-bold text-rouge-roi">{{ retards_critiques }}</div>
+                <div class="mt-2"><a href="{% url 'emprunt_liste' %}" class="small text-rouge-roi fw-bold text-decoration-none">Voir les retards →</a></div>
             </div>
         </div>
     </div>
 
-    <!-- 2. ACTIONS RAPIDES & DERNIÈRE ACTIVITÉ -->
+    <!-- ACTIONS RAPIDES & DERNIÈRE ACTIVITÉ -->
     <div class="row g-4">
-        <!-- Actions Grille -->
         <div class="col-md-7">
-            <div class="card shadow-lg border-0 h-100 bg-white">
-                <div class="card-header bg-dark text-white py-3 border-bottom border-gold-leaf">
-                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-bolt me-2 text-warning"></i> Centre d'Actions Rapides</h5>
+            <div class="card border-0 h-100">
+                <div class="card-header bg-bois-fonce text-dore py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-bolt me-2 text-rouge-roi-clair"></i> Centre d'Actions</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
                         <div class="col-6 col-md-4">
-                            <a href="{% url 'livre_ajouter' %}" class="action-btn text-decoration-none">
-                                <i class="fas fa-book-medical fa-2x mb-2"></i>
-                                <span>Ajouter Livre</span>
+                            <a href="{% url 'utilisateur_ajouter' %}" class="action-btn-vintage">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i>
+                                <span>Nouvel Adhérent</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-4">
-                            <a href="{% url 'emprunt_manuel' %}" class="action-btn text-decoration-none">
+                            <a href="{% url 'emprunt_manuel' %}" class="action-btn-vintage">
                                 <i class="fas fa-hand-holding-hand fa-2x mb-2"></i>
                                 <span>Nouveau Prêt</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-4">
-                            <a href="{% url 'emprunt_liste' %}" class="action-btn text-decoration-none position-relative">
+                            <a href="{% url 'emprunt_liste' %}" class="action-btn-vintage position-relative">
                                 <i class="fas fa-bell fa-2x mb-2"></i>
-                                <span>Valider Demandes</span>
+                                <span>Demandes</span>
                                 {% if demandes_en_attente > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-rouge-roi">
                                     {{ demandes_en_attente }}
                                 </span>
                                 {% endif %}
@@ -115,24 +116,22 @@
                         </div>
                         {% if user.est_administrateur %}
                         <div class="col-6 col-md-4">
-                            <a href="{% url 'utilisateur_liste' %}" class="action-btn text-decoration-none bg-oxford-blue text-white border-0">
+                            <a href="{% url 'utilisateur_liste' %}" class="action-btn-vintage bg-cuir-vieilli text-white">
                                 <i class="fas fa-users-gear fa-2x mb-2"></i>
-                                <span>Gérer Membres</span>
-                            </a>
-                        <div class="col-6 col-md-4">
-                            <a href="{% url 'admin_abonnements' %}" class="action-btn text-decoration-none">
-                                <i class="fas fa-tags fa-2x mb-2"></i>
-                                <span>Plans & Tarifs</span>
+                                <span>Membres</span>
                             </a>
                         </div>
-
                         <div class="col-6 col-md-4">
-                            <form action="{% url 'dashboard' %}" method="get" class="h-100">
-                                <button type="button" class="action-btn w-100 border-dashed" onclick="alert('Scan des retards lancé ! (Simulé)')">
-                                    <i class="fas fa-sync fa-2x mb-2"></i>
-                                    <span>Scan Retards</span>
-                                </button>
-                            </form>
+                            <a href="{% url 'admin_abonnements' %}" class="action-btn-vintage">
+                                <i class="fas fa-tags fa-2x mb-2"></i>
+                                <span>Tarifs</span>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <a href="{% url 'scan_retards' %}" class="action-btn-vintage w-100 text-decoration-none d-flex flex-column align-items-center">
+                                <i class="fas fa-sync fa-2x mb-2"></i>
+                                <span>Scan Retards</span>
+                            </a>
                         </div>
                         {% endif %}
                     </div>
@@ -140,85 +139,137 @@
             </div>
         </div>
 
-        <!-- Flux Activité -->
         <div class="col-md-5">
-            <div class="card shadow-lg border-0 h-100 opacity-90">
-                <div class="card-header bg-oxford-blue text-white py-3">
-                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-history me-2"></i> Flux des Prêts Récents</h5>
+            <div class="card border-0 h-100 mb-4">
+                <div class="card-header bg-bois-fonce text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-dore"><i class="fas fa-history me-2 text-rouge-roi-clair"></i> Flux Récents</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for e in derniers_emprunts %}
-                        <div class="list-group-item bg-transparent py-3">
+                        <div class="list-group-item bg-transparent py-3 border-bois-clair">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="fw-bold text-oxford-blue small">{{ e.adherent.username|upper }}</div>
-                                <span class="badge {% if e.statut == 'demande' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-0 x-small">
+                                <div class="fw-bold text-bois-fonce small">{{ e.adherent.username }}</div>
+                                <span class="badge {% if e.statut == 'demande' %}bg-warning text-dark{% else %}badge-royal{% endif %} x-small">
                                     {{ e.get_statut_display }}
                                 </span>
                             </div>
-                            <div class="small mt-1 text-truncate" style="max-width: 250px;">{{ e.livre.titre }}</div>
+                            <div class="small mt-1 text-truncate">{{ e.livre.titre }}</div>
                             <div class="x-small text-muted mt-1">{{ e.date_emprunt|timesince }}</div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
+
+            <!-- LOG DES ALERTES ENVOYÉES -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-rouge-roi text-white py-2">
+                    <h6 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-satellite-dish me-2"></i> Dernières Alertes Retard</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for n in alertes_recentes %}
+                    <div class="list-group-item bg-white py-2 px-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-bois-fonce small">{{ n.adherent.username }}</span>
+                            <span class="x-small text-muted">{{ n.date_creation|date:"d/m H:i" }}</span>
+                        </div>
+                        <div class="x-small text-truncate opacity-75">{{ n.titre }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center py-3 text-muted small italic">Aucune alerte envoyée récemment.</div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 
     {% else %}
-    <!-- ============================================================== -->
-    <!-- DASHBOARD ADHÉRENT (L'EXISTANT AMÉLIORÉ) -->
-    <!-- ============================================================== -->
+    <!-- MESSAGES ET ALERTES (ADHÉRENT) -->
+    {% if mes_notifs %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg overflow-hidden" style="border: 2px solid var(--rouge-roi) !important;">
+                <div class="card-header bg-rouge-roi text-white py-3">
+                    <h6 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-bell-exclamation me-2"></i> COMMUNICATIONS DU SANCTUAIRE</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for n in mes_notifs %}
+                    <div class="list-group-item bg-white d-flex justify-content-between align-items-center py-4 px-5">
+                        <div class="d-flex align-items-center">
+                            <div class="me-4">
+                                {% if n.type == 'retard' %}
+                                <div class="wax-seal" style="width: 60px; height: 60px; font-size: 1.5rem;"><i class="fas fa-gavel"></i></div>
+                                {% else %}
+                                <div class="wax-seal" style="background: var(--oxford-blue); width: 60px; height: 60px; font-size: 1.5rem;"><i class="fas fa-envelope-open-text"></i></div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="h5 fw-bold text-bois-fonce mb-1">{{ n.titre }}</div>
+                                <div class="text-muted">{{ n.message }}</div>
+                                <div class="x-small text-rouge-roi fw-bold italic mt-2 text-uppercase letter-spacing-1">{{ n.date_creation|timesince }}</div>
+                            </div>
+                        </div>
+                        <a href="{% url 'marquer_notif_lue' n.pk %}" class="btn-royal py-2 px-4 shadow-sm">
+                            <i class="fas fa-check me-2"></i> COMPRIS
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- DASHBOARD ADHÉRENT -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-oxford-blue shadow-lg">
-                <div class="small fw-bold text-uppercase letter-spacing-1 text-muted">Livres en main</div>
-                <div class="display-6 fw-bold text-oxford-blue">{{ nb_mes_livres }}</div>
-                <div class="mt-2"><a href="{% url 'mon_activite' %}" class="small text-decoration-none">Suivi Live →</a></div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Livres en main</div>
+                <div class="display-5 fw-bold text-rouge-roi">{{ nb_mes_livres }}</div>
+                <div class="mt-2"><a href="{% url 'mon_activite' %}" class="small text-bois-fonce fw-bold text-decoration-none">Suivi →</a></div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 {% if mes_demandes > 0 %}border-warning pulse-retard{% else %}border-success{% endif %} shadow-lg">
-                <div class="small fw-bold text-uppercase letter-spacing-1 text-muted">Réservations</div>
-                <div class="display-6 fw-bold {% if mes_demandes > 0 %}text-warning{% else %}text-success{% endif %}">{{ mes_demandes }}</div>
-                <div class="mt-2 text-muted small italic">En attente de validation</div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Réservations</div>
+                <div class="display-5 fw-bold text-dore">{{ mes_demandes }}</div>
+                <div class="mt-2 text-muted small italic">En attente</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 {% if ma_dette > 0 %}border-oxford-crimson{% else %}border-success{% endif %} shadow-lg">
-                <div class="small fw-bold text-uppercase letter-spacing-1 text-muted">Ma Dette</div>
-                <div class="display-6 fw-bold {% if ma_dette > 0 %}text-oxford-crimson{% else %}text-success{% endif %}">{{ ma_dette }} MAD</div>
-                <div class="mt-2"><a href="{% url 'mes_penalites' %}" class="small text-decoration-none">Régulariser →</a></div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Ma Dette</div>
+                <div class="display-5 fw-bold text-rouge-roi">{{ ma_dette }} MAD</div>
+                <div class="mt-2"><a href="{% url 'mes_penalites' %}" class="small text-rouge-roi fw-bold text-decoration-none">Régulariser →</a></div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 border-gold-leaf shadow-lg">
-                <div class="small fw-bold text-uppercase letter-spacing-1 text-muted">Abonnement</div>
-                <div class="display-6 fw-bold text-oxford-blue">{{ jours_abonnement }} J</div>
+            <div class="card bg-bois-clair text-bois-fonce h-100 p-4 border-0 shadow-lg">
+                <div class="small fw-bold text-uppercase opacity-75">Abonnement</div>
+                <div class="display-5 fw-bold text-bois-fonce">{{ jours_abonnement }} J</div>
+                <div class="mt-2 text-muted small italic">Restants</div>
             </div>
         </div>
     </div>
 
-    <!-- Actions Rapides Adhérent -->
     <div class="row g-4">
         <div class="col-md-12">
-            <div class="card card-vault p-5 shadow-lg h-100">
-                <h3 class="fw-bold text-oxford-blue mb-4" style="font-family: 'Libre Baskerville';">Ravi de vous revoir, {{ user.username|upper }}</h3>
-                <p class="lead text-muted mb-5">Que souhaitez-vous consulter aujourd'hui dans les archives d'Oxford ?</p>
+            <div class="card border-0 p-5 shadow-lg text-center" style="background: rgba(212, 163, 115, 0.1);">
+                <h3 class="fw-bold text-bois-fonce mb-4">Que souhaitez-vous explorer aujourd'hui ?</h3>
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <a href="{% url 'livre_liste' %}" class="btn btn-academic w-100 py-3">
+                        <a href="{% url 'livre_liste' %}" class="btn-royal w-100 py-3">
                             <i class="fas fa-search me-2"></i> Catalogue
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{% url 'e_library' %}" class="btn btn-academic bg-dark w-100 py-3">
+                        <a href="{% url 'e_library' %}" class="btn btn-dark w-100 py-3">
                             <i class="fas fa-laptop-code me-2"></i> E-Library
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{% url 'profile' %}" class="btn btn-academic w-100 py-3 bg-secondary">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-dark w-100 py-3 fw-bold border-2">
                             <i class="fas fa-id-badge me-2"></i> Mon Dossier
                         </a>
                     </div>
@@ -226,66 +277,66 @@
             </div>
         </div>
     </div>
-    <!-- ============================================================== -->
-    <!-- CHARTE DE CONDUITE & RÈGLEMENT (UNIVERSEL) -->
-    <!-- ============================================================== -->
+    {% endif %}
+
+    <!-- CHARTE DE CONDUITE -->
     <div class="row mt-5">
         <div class="col-12">
             <div class="card border-0 shadow-lg overflow-hidden">
-                <div class="card-header bg-dark text-gold-leaf py-3 border-bottom border-gold-leaf">
-                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-scroll me-2"></i> Charte de Conduite & Règlement de la Bibliothèque</h5>
+                <div class="card-header bg-rouge-roi text-white py-3 border-bottom border-dore">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-center"><i class="fas fa-scroll me-2"></i> Charte & Règlement de la Bibliothèque Royale</h5>
                 </div>
-                <div class="card-body bg-light p-4">
+                <div class="card-body bg-white p-4">
                     <div class="row g-4">
-                        <div class="col-md-4 border-end">
-                            <h6 class="fw-bold text-oxford-blue text-uppercase small mb-3">1. Délais & Prêts</h6>
-                            <p class="small text-muted mb-0">Chaque ouvrage physique est confié pour une durée de <strong>15 jours calendaires</strong>. La demande de réservation doit être validée au guichet sous 48h.</p>
+                        <div class="col-md-4 border-end border-bois-clair text-center">
+                            <h6 class="fw-bold text-bois-fonce text-uppercase small mb-3">1. Délais & Prêts</h6>
+                            <p class="small text-muted mb-0">15 jours par ouvrage. Réservation à valider sous 48h.</p>
                         </div>
-                        <div class="col-md-4 border-end">
-                            <h6 class="fw-bold text-oxford-crimson text-uppercase small mb-3">2. Sanctions Financières</h6>
-                            <p class="small text-muted mb-0">Tout retard constaté entraîne une pénalité automatique de <strong>3.00 MAD par jour</strong>. Une dette supérieure à 30 MAD suspend vos droits d'accès.</p>
+                        <div class="col-md-4 border-end border-bois-clair text-center">
+                            <h6 class="fw-bold text-rouge-roi text-uppercase small mb-3">2. Sanctions</h6>
+                            <p class="small text-muted mb-0">3 MAD par jour de retard. Blocage si dette > 30 MAD.</p>
                         </div>
-                        <div class="col-md-4">
-                            <h6 class="fw-bold text-success text-uppercase small mb-3">3. Privilèges Numériques</h6>
-                            <p class="small text-muted mb-0">L'accès à la E-Library est un privilège réservé aux membres <strong>Premium</strong> en règle. Toute infraction physique bloque l'accès au numérique.</p>
+                        <div class="col-md-4 text-center">
+                            <h6 class="fw-bold text-dore text-uppercase small mb-3">3. Privilèges</h6>
+                            <p class="small text-muted mb-0">E-Library réservée aux membres Premium en règle.</p>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-white text-center py-2">
-                    <small class="text-muted italic">"Scientia potentia est" — La connaissance est le pouvoir.</small>
+                <div class="card-footer bg-parchemin text-center py-2">
+                    <small class="text-bois-fonce italic fw-bold">"Bibliotheca est mundus in charta" — La bibliothèque est un monde sur papier.</small>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 <style>
-    .action-btn {
+    .action-btn-vintage {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         padding: 25px;
-        background: #fdfaf5;
-        border: 2px solid rgba(0,26,53,0.1);
-        color: #001a35;
-        font-family: 'Inter', sans-serif;
+        background: var(--parchemin);
+        border: 2px solid var(--bois-clair);
+        color: var(--bois-fonce);
+        font-family: 'Poppins', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 1px;
-        transition: 0.3s;
+        transition: all 0.3s;
         height: 100%;
+        text-decoration: none;
+        border-radius: 12px;
     }
-    .action-btn:hover {
-        background: #001a35;
-        color: #d4af37;
-        border-color: #d4af37;
+    .action-btn-vintage:hover {
+        background: var(--rouge-roi);
+        color: white;
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px var(--ombre);
     }
     .x-small { font-size: 0.65rem; }
-    .border-dashed { border: 2px dashed #001a35 !important; background: transparent !important; }
+    .border-bois-clair { border-color: var(--bois-clair) !important; }
 </style>
 {% endblock %}

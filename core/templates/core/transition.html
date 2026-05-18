@@ -1,0 +1,258 @@
+{% extends 'core/base.html' %}
+{% block title %}SÉQUENCE ULTIME - SMARTLIB ROYALE{% endblock %}
+
+{% block content %}
+<div class="ultimate-transition-wrapper position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+     style="background: #000; z-index: 5000; overflow: hidden;">
+    
+    <!-- LE COEUR DE LA TRANSITION : LA VIDÉO -->
+    <!-- Une fois que tu as généré ta vidéo sur Hailuo AI, remplace l'URL ci-dessous dans 'src' -->
+    <video autoplay muted playsinline class="ultimate-video" id="mainVideo">
+        <source src="https://cdn.pixabay.com/video/2020/07/21/45145-442801452_large.mp4" type="video/mp4">
+    </video>
+
+    <!-- COUCHES D'EFFETS SPÉCIAUX (LAYERED FX) -->
+    <div class="fx-vignette"></div>
+    <div class="fx-chromatic-aberration"></div>
+    <div class="fx-grain"></div>
+    <div class="fx-light-leaks"></div>
+    
+    <!-- FLASH FINAL (SYNC AVEC REDIRECTION) -->
+    <div class="final-flash" id="flash"></div>
+
+    <!-- UI OVERLAY CINÉMATIQUE -->
+    <div class="ui-content text-center">
+        <div class="glitch-container mb-4">
+            <div class="crest-main">
+                <i class="fas fa-university fa-6x text-dore"></i>
+            </div>
+            <div class="crest-ghost text-dore"><i class="fas fa-university fa-6x"></i></div>
+        </div>
+
+        <div class="text-reveal-container">
+            <h1 class="main-title" id="title">SMARTLIB</h1>
+            <div class="sub-title">ARCHIVES DU SANCTUAIRE • NIV. 10</div>
+        </div>
+
+        <div class="status-container mt-5">
+            <div class="scanning-bar"></div>
+            <p class="status-text" id="statusLine">DÉCRYPTAGE DES SCEAUX...</p>
+        </div>
+        
+        <div class="quote-box mt-4">
+            <p class="quote-latin" id="quoteLatin"></p>
+        </div>
+    </div>
+
+    <!-- ÉLÉMENTS DE DÉCOR DYNAMIQUES -->
+    <div class="particles-field" id="particles"></div>
+</div>
+
+<style>
+    /* 1. RESET & WRAPPER */
+    .ultimate-transition-wrapper {
+        cursor: none;
+        perspective: 1000px;
+    }
+
+    /* 2. VIDÉO AVEC EFFET DOLLY ZOOM SIMULÉ */
+    .ultimate-video {
+        position: absolute;
+        min-width: 100%; min-height: 100%;
+        width: auto; height: auto;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) scale(1.1);
+        filter: contrast(120%) brightness(60%) sepia(20%);
+        animation: videoDolly 6s cubic-bezier(0.1, 0, 0.1, 1) forwards;
+    }
+
+    @keyframes videoDolly {
+        0% { transform: translate(-50%, -50%) scale(1.4) rotate(0deg); filter: brightness(0); }
+        15% { filter: brightness(0.6); }
+        100% { transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
+    }
+
+    /* 3. EFFETS VISUELS AVANCÉS */
+    .fx-vignette {
+        position: absolute; inset: 0;
+        background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.95) 100%);
+        z-index: 2;
+    }
+
+    .fx-chromatic-aberration {
+        position: absolute; inset: 0;
+        background: transparent;
+        z-index: 3;
+        pointer-events: none;
+        box-shadow: inset 0 0 100px rgba(255,0,0,0.05), inset 0 0 100px rgba(0,255,255,0.05);
+        mix-blend-mode: screen;
+    }
+
+    .fx-grain {
+        position: absolute; inset: 0;
+        background: url('https://www.transparenttextures.com/patterns/stardust.png');
+        opacity: 0.2;
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    .fx-light-leaks {
+        position: absolute; inset: 0;
+        background: linear-gradient(135deg, rgba(201,160,61,0.1) 0%, transparent 50%, rgba(183,28,28,0.05) 100%);
+        z-index: 5;
+        animation: lightLeakMove 8s infinite alternate;
+    }
+
+    @keyframes lightLeakMove {
+        from { transform: scale(1); opacity: 0.3; }
+        to { transform: scale(1.2) rotate(5deg); opacity: 0.6; }
+    }
+
+    /* 4. UI & TITRE (STYLE FIGMA/MOVABLE) */
+    .ui-content {
+        position: relative;
+        z-index: 20;
+    }
+
+    .main-title {
+        font-family: 'Cinzel', serif;
+        font-size: 5rem;
+        color: var(--dore);
+        font-weight: 900;
+        letter-spacing: 20px;
+        text-shadow: 0 0 30px rgba(201,160,61,0.5);
+        margin: 0;
+        animation: titleEntrance 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes titleEntrance {
+        from { letter-spacing: 50px; opacity: 0; transform: scale(1.2) translateY(50px); filter: blur(20px); }
+        to { letter-spacing: 20px; opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+    }
+
+    .sub-title {
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 8px;
+        opacity: 0;
+        animation: fadeIn 1s ease-out 1.5s forwards;
+    }
+
+    /* 5. SCANNER & STATUS */
+    .status-container {
+        width: 400px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .scanning-bar {
+        width: 100%; height: 1px;
+        background: var(--dore);
+        box-shadow: 0 0 15px var(--dore);
+        position: absolute;
+        top: 0;
+        animation: scanline 2.5s ease-in-out infinite;
+    }
+
+    @keyframes scanline {
+        0% { transform: translateY(0); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(40px); opacity: 0; }
+    }
+
+    .status-text {
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    /* 6. FLASH & PARTICULES */
+    .final-flash {
+        position: absolute; inset: 0;
+        background: white;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        filter: blur(1px);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 0.7; } }
+</style>
+
+<script>
+    const latinQuotes = [
+        "SCIENTIA POTENTIA EST",
+        "IN LIBRIS LIBERTAS",
+        "VERITAS VOS LIBERABIT",
+        "AUDERE EST FACERE",
+        "AD ASTRA PER ASPERA"
+    ];
+
+    const statusSteps = [
+        "VÉRIFICATION DES CRÉDENTIELS...",
+        "ACCÈS AU COEUR DU RÉSEAU...",
+        "DÉCRYPTAGE DES ARCHIVES ROYALES...",
+        "SYNCHRONISATION DU PROTOCOLE...",
+        "BIENVENUE, GARDIEN DU SAVOIR."
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Init UI
+        document.getElementById('quoteLatin').innerText = latinQuotes[Math.floor(Math.random() * latinQuotes.length)];
+        
+        let step = 0;
+        const statusEl = document.getElementById('statusLine');
+        const statusInterval = setInterval(() => {
+            if (step < statusSteps.length) {
+                statusEl.innerText = statusSteps[step];
+                step++;
+            } else {
+                clearInterval(statusInterval);
+            }
+        }, 1000);
+
+        // Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 150; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 3;
+            p.style.width = p.style.height = `${size}px`;
+            p.style.left = `${Math.random() * 100}%`;
+            p.style.top = `${Math.random() * 100}%`;
+            p.style.opacity = Math.random();
+            
+            p.animate([
+                { transform: 'translate(0, 0)', opacity: 0 },
+                { transform: `translate(${Math.random() * 100 - 50}px, -200px)`, opacity: 0.8 },
+                { transform: `translate(${Math.random() * 200 - 100}px, -400px)`, opacity: 0 }
+            ], {
+                duration: 3000 + Math.random() * 2000,
+                iterations: Infinity
+            });
+            particlesContainer.appendChild(p);
+        }
+
+        // REDIRECTION AVEC FLASH
+        setTimeout(() => {
+            const flash = document.getElementById('flash');
+            flash.style.transition = 'opacity 0.4s ease-in';
+            flash.style.opacity = '1';
+            
+            setTimeout(() => {
+                window.location.href = "{% url 'dashboard' %}";
+            }, 500);
+        }, 5500);
+    });
+</script>
+{% endblock %}

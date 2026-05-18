@@ -49,6 +49,12 @@ class User(AbstractUser):
     
     def est_administrateur(self):
         return self.role == 'admin' or self.is_superuser
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['username']),
+            models.Index(fields=['role']),
+        ]
     
     def est_bibliothecaire(self):
         return self.role == 'bibliothecaire' or self.est_administrateur()
@@ -119,7 +125,7 @@ class User(AbstractUser):
         return True, "ACCÈS AUTORISÉ"
     
     def peut_acceder_e_library(self):
-        """Règle Stricte J8 : Seul le sceau PREMIUM donne accès au numérique."""
+        """Vérifie l'accès à la E-Library selon le plan actif (Point 8 du CDC)."""
         if self.debloque_par_admin or self.est_bibliothecaire():
             return True, "ACCÈS PRIVILÉGIÉ PERSONNEL"
 
@@ -133,7 +139,7 @@ class User(AbstractUser):
         if not abonnement:
             return False, "AUCUN SCEAU ACTIF : Souscription requise."
             
-        if abonnement.plan.nom != 'Premium':
+        if not abonnement.plan.acces_e_library:
             return False, f"PRIVILÈGE INSUFFISANT : Le plan {abonnement.plan.nom} ne couvre pas l'accès numérique. Passez au Premium."
         
         return True, "ACCÈS AUTORISÉ"
@@ -167,21 +173,30 @@ class PlanAbonnement(models.Model):
 class Abonnement(models.Model):
     """
     RÔLE : Gérer la durée d'accès d'un adhérent à un plan spécifique.
-    LOGIQUE : Calcule automatiquement la date de fin à J+30 par défaut.
+    LOGIQUE : Calcule automatiquement la date de fin à J+30 ou J+365 selon la durée choisie.
     """
+    DUREE_CHOICES = (
+        ('mensuel', 'Mensuel'),
+        ('annuel', 'Annuel'),
+    )
+    
     adherent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='abonnements')
     plan = models.ForeignKey(PlanAbonnement, on_delete=models.SET_NULL, null=True)
     date_debut = models.DateTimeField(default=timezone.now)
     date_fin = models.DateTimeField()
+    duree_choisie = models.CharField(max_length=10, choices=DUREE_CHOICES, default='mensuel')
     est_actif = models.BooleanField(default=True)
     
     def __str__(self):
-        return f"{self.adherent.username} - {self.plan.nom}"
+        return f"{self.adherent.username} - {self.plan.nom} ({self.get_duree_choisie_display()})"
     
     def save(self, *args, **kwargs):
-        # Automatisation : J+30 par défaut
+        # Automatisation : Calcul de la date de fin selon la durée choisie
         if not self.date_fin:
-            self.date_fin = self.date_debut + timedelta(days=30)
+            if self.duree_choisie == 'annuel':
+                self.date_fin = self.date_debut + timedelta(days=365)
+            else:
+                self.date_fin = self.date_debut + timedelta(days=30)
         super().save(*args, **kwargs)
     
     def est_valide(self):
@@ -189,7 +204,22 @@ class Abonnement(models.Model):
 
 
 # ==============================================================================
-# 4. CLASSE MÉTIER : LIVRE (Le Fonds Documentaire Hybride)
+# 4. CLASSE MÉTIER : AUTEUR (Gestion des Écrivains)
+# ==============================================================================
+class Auteur(models.Model):
+    """
+    RÔLE : Centraliser les informations sur les auteurs.
+    POURQUOI : Permet de modifier la biographie et la photo une seule fois pour tous les livres.
+    """
+    nom = models.CharField(max_length=100, unique=True)
+    biographie = models.TextField(blank=True, null=True)
+    photo = models.ImageField(upload_to='authors/', blank=True, null=True)
+    
+    def __str__(self):
+        return self.nom
+
+# ==============================================================================
+# 5. CLASSE MÉTIER : LIVRE (Le Fonds Documentaire Hybride)
 # ==============================================================================
 class Livre(models.Model):
     """
@@ -198,12 +228,14 @@ class Livre(models.Model):
     """
     isbn = models.CharField(max_length=13, unique=True, blank=True, null=True)
     titre = models.CharField(max_length=200)
-    auteur = models.CharField(max_length=100)
+    auteur = models.CharField(max_length=100) # Ancien CharField
+    auteur_fk = models.ForeignKey(Auteur, on_delete=models.SET_NULL, null=True, related_name='livres') # Nouveau FK
+    
     editeur = models.CharField(max_length=100, blank=True, null=True)
     annee_publication = models.IntegerField(blank=True, null=True)
     resume = models.TextField(blank=True, null=True)
     
-    # Informations sur l'auteur
+    # Informations sur l'auteur (Anciennes colonnes)
     auteur_biographie = models.TextField(blank=True, null=True)
     auteur_photo = models.ImageField(upload_to='authors/', blank=True, null=True)
     
@@ -221,6 +253,17 @@ class Livre(models.Model):
     def __str__(self):
         return f"{self.titre} - {self.auteur}"
     
+    def get_note_moyenne(self):
+        """Calcule la moyenne des avis (0 à 5)."""
+        avis = self.avis.all()
+        if not avis:
+            return 0
+        return round(sum(a.note for a in avis) / avis.count(), 1)
+
+    def get_etoiles_moyenne(self):
+        """Retourne un range pour l'affichage des étoiles en template."""
+        return range(int(round(self.get_note_moyenne())))
+
     def est_disponible_physique(self):
         return self.quantite_disponible > 0
     
@@ -240,6 +283,34 @@ class Livre(models.Model):
             self.save()
             return True
         return False
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['isbn']),
+            models.Index(fields=['titre']),
+            models.Index(fields=['a_version_numerique']),
+        ]
+
+
+# ==============================================================================
+# 6. CLASSE MÉTIER : AVIS (Interface Community)
+# ==============================================================================
+class Avis(models.Model):
+    """
+    RÔLE : Permettre aux membres de noter et commenter les ouvrages.
+    """
+    adherent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='avis')
+    livre = models.ForeignKey(Livre, on_delete=models.CASCADE, related_name='avis')
+    note = models.IntegerField(default=5, help_text="Note de 0 à 5 étoiles")
+    commentaire = models.TextField()
+    date_publication = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Avis"
+        unique_together = ('adherent', 'livre') # Un seul avis par livre par personne
+
+    def __str__(self):
+        return f"Avis de {self.adherent.username} sur {self.livre.titre}"
 
 
 # ==============================================================================
@@ -265,6 +336,13 @@ class Emprunt(models.Model):
     date_retour_reelle = models.DateTimeField(blank=True, null=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='demande')
     est_retourne = models.BooleanField(default=False)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['statut']),
+            models.Index(fields=['date_emprunt']),
+            models.Index(fields=['est_retourne']),
+        ]
     
     def __str__(self):
         return f"{self.adherent.username} - {self.livre.titre} ({self.get_statut_display()})"
@@ -378,3 +456,29 @@ class ConsultationNumerique(models.Model):
     
     def __str__(self):
         return f"{self.adherent.username} a lu {self.livre.titre} le {self.date_consultation}"
+
+# ==============================================================================
+# 8. CLASSE MÉTIER : NOTIFICATION (Communication Adhérent)
+# ==============================================================================
+class Notification(models.Model):
+    """
+    RÔLE : Envoyer des alertes et messages aux adhérents (Retards, Validations).
+    """
+    TYPES = (
+        ('retard', 'Alerte Retard'),
+        ('info', 'Information'),
+        ('succes', 'Validation'),
+    )
+    adherent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    emprunt = models.ForeignKey(Emprunt, on_delete=models.CASCADE, related_name='notifications', blank=True, null=True)
+    titre = models.CharField(max_length=100)
+    message = models.TextField()
+    type = models.CharField(max_length=20, choices=TYPES, default='info')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    est_lu = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notif for {self.adherent.username} : {self.titre}"
+
+    class Meta:
+        ordering = ['-date_creation']

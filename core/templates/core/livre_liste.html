@@ -1,73 +1,157 @@
 {% extends 'core/base.html' %}
-{% block title %}Catalogue des Archives - SmartLib Oxford{% endblock %}
+{% block title %}Le Catalogue Royal - SmartLib Royale{% endblock %}
 
 {% block content %}
 <div class="reveal">
-    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
-        <h1 class="display-5 fw-bold text-oxford-blue mb-0" style="font-family: 'Libre Baskerville';">Catalogue des Archives</h1>
+    {% if not user.est_bibliothecaire %}
+    <!-- Bandeau Statut Adhérent (Haute Qualité) -->
+    <div class="alert bg-oxford-blue text-white mb-5 shadow-lg border-0 d-flex justify-content-between align-items-center p-4" style="border-radius: 15px; border-left: 8px solid var(--dore) !important;">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fas fa-id-card me-2 text-dore"></i> Statut de Prêt : <span class="text-dore">{{ abonnement.plan.nom|default:"Aucun Plan" }}</span></h5>
+            <p class="small mb-0 opacity-75">Vous utilisez <strong>{{ emprunts_count }}</strong> emplacements sur <strong>{{ abonnement.plan.limite_emprunts_physiques|default:0 }}</strong> disponibles.</p>
+        </div>
+        <div class="text-end">
+            <div class="progress mb-2" style="height: 10px; width: 200px; background: rgba(255,255,255,0.2);">
+                {% widthratio emprunts_count abonnement.plan.limite_emprunts_physiques|default:1 100 as width %}
+                <div class="progress-bar bg-dore" style="width: {{ width }}%"></div>
+            </div>
+            <span class="x-small fw-bold text-uppercase">Capacité : {{ width }}%</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header Majestueux -->
+    <div class="d-flex justify-content-between align-items-end mb-5 border-bottom border-3 border-rouge-roi pb-4">
+        <div class="reveal-ink p-2">
+            <h1 class="display-3 fw-bold text-oxford-blue mb-0" style="font-family: 'Cinzel';">Le Catalogue <span style="color: var(--dore);">Royal</span></h1>
+            <p class="text-rouge-roi text-uppercase fw-bold letter-spacing-2 small mb-0">La Demeure des Grands Maîtres</p>
+        </div>
         <div class="d-flex align-items-center">
             {% if user.est_bibliothecaire %}
-            <a href="{% url 'livre_ajouter' %}" class="btn btn-academic me-3">
-                <i class="fas fa-plus-circle me-2"></i> Ajouter
-            </a>
+            <a href="{% url 'livre_ajouter' %}" class="btn-royal me-4 shadow-lg"><i class="fas fa-plus-circle me-2"></i>INSCRIRE</a>
             {% endif %}
             <div class="search-vault">
-                <form action="{% url 'livre_liste' %}" method="get" class="d-flex">
-                    <div class="input-group">
-                        <input type="text" name="q" class="form-control border-2 border-oxford-blue rounded-0" placeholder="Rechercher..." value="{{ search_query }}">
-                        <button class="btn btn-academic py-2" type="submit"><i class="fas fa-search"></i></button>
-                    </div>
+                <form action="{% url 'livre_liste' %}" method="get" class="d-flex shadow-lg" style="border-radius: 50px; overflow: hidden; border: 2px solid var(--oxford-blue);">
+                    <input type="text" name="q" class="form-control border-0 p-3 ps-4" placeholder="Rechercher une œuvre..." value="{{ search_query }}" style="width: 250px; font-weight: 700; background: white;">
+                    <button class="btn btn-oxford-blue px-4 text-white" style="background: var(--oxford-blue); border-radius: 0;"><i class="fas fa-search"></i></button>
                 </form>
             </div>
         </div>
     </div>
 
-
-    <div class="row g-4">
+    <!-- Grille de Prestige -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-5">
         {% for livre in livres %}
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card card-vault h-100 shadow-sm">
-                <!-- Cover Area -->
-                <div class="position-relative overflow-hidden" style="height: 350px;">
-                    {% if livre.couverture %}
-                    <img src="{{ livre.couverture.url }}" class="card-img-top h-100 w-100" style="object-fit: cover; filter: sepia(20%);" alt="{{ livre.titre }}">
-                    {% else %}
-                    <div class="bg-dark h-100 d-flex align-items-center justify-content-center text-gold">
-                        <i class="fas fa-book fa-4x opacity-25"></i>
+        <div class="col">
+            <div class="card h-100 card-prestige-author overflow-hidden border-0 shadow-2xl parchment-texture" style="border: 2px solid var(--dore) !important;">
+                <!-- Zone Affiche (Fond Bois avec Texture) -->
+                <div class="poster-section p-4 position-relative" style="background: var(--bois-fonce) url('https://www.transparenttextures.com/patterns/black-linen.png'); height: 500px; border-bottom: 5px solid var(--dore);">
+                    
+                    <!-- CIRE ROYALE (WAX SEAL) -->
+                    {% if livre.a_version_numerique %}
+                    <div class="position-absolute" style="top: 15px; right: 15px; z-index: 20;">
+                        <div class="wax-seal" title="Disponible en E-Library"><i class="fas fa-bolt"></i></div>
                     </div>
                     {% endif %}
-                    
-                    <!-- Badges contextuels -->
-                    <div class="position-absolute top-0 end-0 p-2">
-                        {% if livre.a_version_numerique %}
-                        <span class="badge-prestige small d-block mb-1"><i class="fas fa-laptop"></i> Digital</span>
-                        {% endif %}
-                        {% if livre.quantite_disponible > 0 %}
-                        <span class="badge bg-success badge-status shadow-sm">Disponible</span>
+
+                    <!-- Couverture Réelle et Originale -->
+                    <div class="main-cover-frame shadow-2xl border-double-gold">
+                        {% if livre.couverture %}
+                        <img src="{{ livre.couverture.url }}" class="main-cover-img" alt="{{ livre.titre }}">
                         {% else %}
-                        <span class="badge bg-danger badge-status shadow-sm">Indisponible</span>
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-dore opacity-25"><i class="fas fa-book fa-5x"></i></div>
                         {% endif %}
+                    </div>
+
+                    <!-- PHOTO DE L'AUTEUR (INTEGRATION ROYALE) -->
+                    <div class="author-circle-frame shadow-2xl">
+                        {% if livre.auteur_fk.photo %}
+                        <img src="{{ livre.auteur_fk.photo.url }}" class="author-portrait" alt="{{ livre.auteur_fk.nom }}">
+                        {% else %}
+                        <div class="author-portrait-placeholder"><i class="fas fa-user-edit"></i></div>
+                        {% endif %}
+                        <div class="author-gold-badge"><i class="fas fa-feather-pointed"></i></div>
+                    </div>
+
+                    <!-- Overlay au survol -->
+                    <div class="poster-overlay d-flex flex-column align-items-center justify-content-center">
+                        <a href="{% url 'livre_detail' livre.pk %}" class="btn-royal shadow-lg">CONSULTER L'ARCHIVE</a>
                     </div>
                 </div>
 
-                <div class="card-body p-4">
-                    <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 1.5px;">Index: OX-{{ livre.pk|stringformat:"04d" }}</div>
-                    <h5 class="card-title fw-bold text-oxford-blue mb-2" style="font-family: 'Libre Baskerville'; line-height: 1.2;">{{ livre.titre }}</h5>
-                    <p class="card-text small text-muted italic mb-3">Par le Dr. {{ livre.auteur }}</p>
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="small fw-bold text-gold-brass"><i class="fas fa-archive me-1"></i> Stock: {{ livre.quantite_disponible }}</span>
-                        <a href="{% url 'livre_detail' livre.pk %}" class="btn btn-academic btn-sm py-2">Consulter</a>
+                <!-- Section Textes (Parchemin avec Effet Encre) -->
+                <div class="card-body p-4 text-center d-flex flex-column position-relative">
+                    <div class="text-rouge-roi fw-bold text-uppercase x-small mb-1 reveal-ink">Manuscrit Original</div>
+                    <h4 class="fw-bold text-oxford-blue mb-2" style="font-family: 'Cinzel'; min-height: 3rem;">{{ livre.titre }}</h4>
+                    <p class="text-muted fw-bold italic small"><i class="fas fa-quill me-2"></i>Écrit par <span class="text-oxford-blue">{{ livre.auteur_fk.nom|default:livre.auteur }}</span></p>
+                    
+                    <div class="mt-auto pt-3 d-flex justify-content-between align-items-center border-top border-bois-clair">
+                        <span class="small fw-bold text-oxford-blue"><i class="fas fa-layer-group text-dore me-1"></i> {{ livre.quantite_disponible }} en Rayon</span>
+                        <div class="d-flex align-items-center">
+                            <span class="badge {% if livre.quantite_disponible > 0 %}bg-success{% else %}bg-danger{% endif %} py-2 px-3 shadow-sm border border-white">
+                                {% if livre.quantite_disponible > 0 %}DISPONIBLE{% else %}OCCUPÉ{% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-search fa-4x opacity-25 mb-3 text-oxford-blue"></i>
-            <h3 class="text-oxford-blue">Aucune archive ne correspond à votre recherche.</h3>
-            <p class="text-muted">Veuillez vérifier les termes ou consulter le bibliothécaire.</p>
-        </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    .card-prestige-author {
+        transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 20px !important;
+        background: transparent;
+    }
+    .card-prestige-author:hover { transform: translateY(-25px); }
+
+    .main-cover-frame {
+        width: 100%; height: 100%;
+        border: 4px solid var(--dore);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: 0.5s;
+        background: white;
+    }
+    .main-cover-img { width: 100%; height: 100%; object-fit: contain; transition: 0.8s; }
+    .card-prestige-author:hover .main-cover-img { transform: scale(1.1) rotate(1deg); filter: brightness(0.6); }
+
+    .poster-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,33,71,0.4);
+        opacity: 0; transition: 0.4s; z-index: 5;
+    }
+    .card-prestige-author:hover .poster-overlay { opacity: 1; }
+
+    /* MEDAILLON AUTEUR */
+    .author-circle-frame {
+        position: absolute; bottom: 20px; left: 20px;
+        width: 120px; height: 120px;
+        border-radius: 50%; z-index: 10;
+        background: white; padding: 6px;
+        border: 4px solid var(--oxford-blue);
+        transition: 0.4s ease;
+    }
+    .card-prestige-author:hover .author-circle-frame { transform: scale(1.1); border-color: var(--dore); }
+    
+    .author-portrait { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--dore); }
+    .author-portrait-placeholder {
+        width: 100%; height: 100%; background: var(--oxford-blue); color: var(--dore);
+        display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border-radius: 50%;
+    }
+
+    .author-gold-badge {
+        position: absolute; top: -5px; right: -5px;
+        background: var(--dore); color: var(--oxford-blue);
+        width: 35px; height: 35px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid var(--oxford-blue); font-size: 0.9rem;
+    }
+
+    .x-small { font-size: 0.65rem; letter-spacing: 2px; }
+    .shadow-2xl { box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+</style>
 {% endblock %}

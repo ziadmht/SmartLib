@@ -3,9 +3,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
+from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from .models import User, Livre, Emprunt, Penalite, Abonnement, PlanAbonnement
+from django.utils import timezone
+import json
+from datetime import datetime, timedelta
+from .models import User, Livre, Emprunt, Penalite, Abonnement, PlanAbonnement, Auteur, Avis, ConsultationNumerique, Notification
 from .utils import get_book_metadata_by_isbn, download_image_from_url, admin_required, bibliothecaire_required
+from django.core.management import call_command
 
 
 # ============================================================
@@ -25,11 +30,16 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Ravi de vous revoir, {user.username} !')
-            return redirect('dashboard')
+            return redirect('transition')
         else:
             messages.error(request, 'Identifiants invalides. Veuillez réessayer.')
     
     return render(request, 'core/login.html')
+
+@login_required
+def transition_view(request):
+    """Affiche l'animation de transition stylisée vers le dashboard"""
+    return render(request, 'core/transition.html')
 
 
 def logout_view(request):
@@ -53,7 +63,7 @@ def dashboard(request):
     context = {'today': timezone.now()}
     
     if user.est_bibliothecaire():
-        # Statistiques Globales pour le Personnel
+        # ... (biblio code)
         context.update({
             'total_livres': Livre.objects.count(),
             'emprunts_actifs': Emprunt.objects.filter(statut='en_cours').count(),
@@ -61,15 +71,16 @@ def dashboard(request):
             'penalites_impayees': Penalite.objects.filter(est_reglee=False).count(),
             'retards_critiques': Emprunt.objects.filter(statut='en_cours', date_retour_prevue__lt=timezone.now()).count(),
             'demandes_en_attente': Emprunt.objects.filter(statut='demande').count(),
-            # Nouveaux KPIs "Haute Qualité"
             'recettes_totales': Penalite.objects.filter(est_reglee=True).aggregate(Sum('montant'))['montant__sum'] or 0,
             'stock_critique': Livre.objects.filter(quantite_disponible__lte=1).count(),
             'derniers_emprunts': Emprunt.objects.select_related('adherent', 'livre').order_by('-date_emprunt')[:5],
+            'alertes_recentes': Notification.objects.filter(type='retard').select_related('adherent').order_by('-date_creation')[:5],
         })
     else:
         # Statistiques Personnelles pour l'Adhérent
         mes_emprunts = Emprunt.objects.filter(adherent=user, statut__in=['demande', 'en_cours'])
         abonnement = user.get_abonnement_actif()
+        mes_notifs = Notification.objects.filter(adherent=user, est_lu=False)[:5]
         
         context.update({
             'nb_mes_livres': mes_emprunts.filter(statut='en_cours').count(),
@@ -78,14 +89,69 @@ def dashboard(request):
             'statut_compte': user.peut_emprunter()[0],
             'message_statut': user.peut_emprunter()[1],
             'mes_demandes': mes_emprunts.filter(statut='demande').count(),
+            'mes_notifs': mes_notifs,
         })
     
     return render(request, 'core/dashboard.html', context)
+
+@login_required
+@bibliothecaire_required
+def scan_retards(request):
+    """Déclenche la vérification des retards via le dashboard."""
+    call_command('verifier_retards')
+    messages.success(request, "Le scan des retards a été effectué. Les messages d'avertissement ont été envoyés.")
+    return redirect('dashboard')
+
+@login_required
+def marquer_notif_lue(request, pk):
+    """Marque une notification comme lue."""
+    notif = get_object_or_404(Notification, pk=pk, adherent=request.user)
+    notif.est_lu = True
+    notif.save()
+    return redirect('dashboard')
+
 
 
 # ============================================================
 # 3. GESTION DU PROFIL
 # ============================================================
+
+@login_required
+@bibliothecaire_required
+def utilisateur_ajouter(request):
+    """
+    Ajouter un utilisateur.
+    Admin : peut ajouter Bibliothécaire ou Adhérent.
+    Bibliothécaire : peut ajouter uniquement Adhérent.
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        # Détermination du rôle
+        if request.user.est_administrateur():
+            role = request.POST.get('role', 'adherent')
+        else:
+            role = 'adherent' # Un bibliothécaire ne peut créer que des adhérents
+
+        if not username or not password:
+            messages.error(request, "Veuillez remplir tous les champs obligatoires.")
+            return render(request, 'core/utilisateur_form.html')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Cet identifiant est déjà utilisé par un autre membre.")
+        else:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role=role
+            )
+            messages.success(request, f"Le compte de {username} ({user.get_role_display()}) a été scellé avec succès.")
+            return redirect('utilisateur_liste')
+
+    return render(request, 'core/utilisateur_form.html')
 
 @login_required
 def profile_view(request):
@@ -123,19 +189,25 @@ def livre_liste(request):
     """
     Affiche la liste de tous les livres avec recherche.
     """
-    livres = Livre.objects.all().order_by('-date_ajout')
+    livres = Livre.objects.all().select_related('auteur_fk').order_by('-date_ajout')
     
     search_query = request.GET.get('q', '')
     if search_query:
         livres = livres.filter(
             Q(titre__icontains=search_query) |
-            Q(auteur__icontains=search_query) |
+            Q(auteur_fk__nom__icontains=search_query) |
             Q(isbn__icontains=search_query)
         )
     
+    # Infos pour le bandeau de statut de l'adhérent
+    abonnement = request.user.get_abonnement_actif()
+    emprunts_count = request.user.emprunts.filter(statut__in=['demande', 'en_cours']).count()
+
     context = {
         'livres': livres,
         'search_query': search_query,
+        'abonnement': abonnement,
+        'emprunts_count': emprunts_count,
     }
     return render(request, 'core/livre_liste.html', context)
 
@@ -145,8 +217,14 @@ def livre_detail(request, pk):
     """
     Affiche les détails d'un livre spécifique avec biographie de l'auteur.
     """
-    livre = get_object_or_404(Livre, pk=pk)
+    livre = get_object_or_404(Livre.objects.select_related('auteur_fk'), pk=pk)
     
+    # Avis de la communauté
+    avis_liste = livre.avis.select_related('adherent').order_by('-date_publication')
+    mon_avis = None
+    if request.user.is_authenticated:
+        mon_avis = livre.avis.filter(adherent=request.user).first()
+
     # Vérifier si l'utilisateur peut emprunter (pour afficher le bouton)
     peut_emprunter, message_emprunt = request.user.peut_emprunter()
     
@@ -154,6 +232,8 @@ def livre_detail(request, pk):
         'livre': livre,
         'peut_emprunter': peut_emprunter,
         'message_emprunt': message_emprunt,
+        'avis_liste': avis_liste,
+        'mon_avis': mon_avis,
     }
     return render(request, 'core/livre_detail.html', context)
 
@@ -166,33 +246,33 @@ def livre_ajouter(request):
     """
     if request.method == 'POST':
         titre = request.POST.get('titre')
-        auteur = request.POST.get('auteur')
+        auteur_nom = request.POST.get('auteur')
         isbn = request.POST.get('isbn')
         editeur = request.POST.get('editeur')
         annee_publication = request.POST.get('annee_publication')
         resume = request.POST.get('resume')
-        auteur_biographie = request.POST.get('auteur_biographie')
         quantite_totale = request.POST.get('quantite_totale', 0)
         a_version_numerique = request.POST.get('a_version_numerique') == 'on'
         
         fichier_pdf = request.FILES.get('fichier_pdf')
         couverture = request.FILES.get('couverture')
-        auteur_photo = request.FILES.get('auteur_photo')
+        
+        # Gestion de l'auteur
+        auteur_obj, _ = Auteur.objects.get_or_create(nom=auteur_nom)
         
         livre = Livre.objects.create(
             titre=titre,
-            auteur=auteur,
+            auteur=auteur_nom, # Pour compatibilité temporaire
+            auteur_fk=auteur_obj,
             isbn=isbn if isbn else None,
             editeur=editeur,
             annee_publication=annee_publication if annee_publication else None,
             resume=resume,
-            auteur_biographie=auteur_biographie,
             quantite_totale=int(quantite_totale),
             quantite_disponible=int(quantite_totale),
             a_version_numerique=a_version_numerique,
             fichier_pdf=fichier_pdf,
             couverture=couverture,
-            auteur_photo=auteur_photo,
         )
         
         messages.success(request, f'Le livre "{titre}" a été ajouté avec succès !')
@@ -211,12 +291,17 @@ def livre_modifier(request, pk):
     
     if request.method == 'POST':
         livre.titre = request.POST.get('titre')
-        livre.auteur = request.POST.get('auteur')
+        auteur_nom = request.POST.get('auteur')
+        
+        # Gestion de l'auteur
+        auteur_obj, _ = Auteur.objects.get_or_create(nom=auteur_nom)
+        livre.auteur_fk = auteur_obj
+        livre.auteur = auteur_nom # Pour compatibilité
+        
         livre.isbn = request.POST.get('isbn') or None
         livre.editeur = request.POST.get('editeur')
         livre.annee_publication = request.POST.get('annee_publication') or None
         livre.resume = request.POST.get('resume')
-        livre.auteur_biographie = request.POST.get('auteur_biographie')
         
         # Gestion intelligente des quantités
         ancienne_totale = livre.quantite_totale
@@ -232,8 +317,6 @@ def livre_modifier(request, pk):
             livre.fichier_pdf = request.FILES.get('fichier_pdf')
         if request.FILES.get('couverture'):
             livre.couverture = request.FILES.get('couverture')
-        if request.FILES.get('auteur_photo'):
-            livre.auteur_photo = request.FILES.get('auteur_photo')
             
         livre.save()
         
@@ -603,25 +686,19 @@ def simuler_retard(request, emprunt_id):
 
 
 @login_required
-def e_library(request):
-    """E-Library : Accès aux ressources numériques (Point 9)"""
-    peut_acceder, message = request.user.peut_acceder_e_library()
-    if not peut_acceder:
-        messages.warning(request, message)
-        return redirect('dashboard')
-    
-    livres_numeriques = Livre.objects.filter(a_version_numerique=True)
-    return render(request, 'core/e_library.html', {'livres': livres_numeriques})
-
-
-@login_required
-@admin_required
+@bibliothecaire_required
 def utilisateur_liste(request):
     """
-    Gestionnaire de Membres - EXCLUSIF ADMIN.
-    Permet de piloter les rôles et de gracier les membres bloqués.
+    Gestionnaire de Membres - ACCESSIBLE PERSONNEL.
+    Admin : voit tout le monde.
+    Biblio : voit uniquement les adhérents.
     """
-    utilisateurs = User.objects.all().annotate(
+    if request.user.est_administrateur():
+        utilisateurs = User.objects.all()
+    else:
+        utilisateurs = User.objects.filter(role='adherent')
+
+    utilisateurs = utilisateurs.annotate(
         nb_emprunts=Count('emprunts', filter=Q(emprunts__statut='en_cours')),
         dette=Sum('penalites__montant', filter=Q(penalites__est_reglee=False))
     ).order_by('-date_joined')
@@ -633,11 +710,47 @@ def utilisateur_liste(request):
             Q(email__icontains=search_query)
         )
         
+    plans = PlanAbonnement.objects.all().order_by('prix_mensuel')
+    
     context = {
         'utilisateurs': utilisateurs,
         'search_query': search_query,
+        'plans': plans,
     }
     return render(request, 'core/utilisateur_liste.html', context)
+
+@login_required
+@bibliothecaire_required
+def admin_assigner_abonnement(request, pk):
+    """
+    Permet au personnel d'attribuer manuellement un plan à un utilisateur.
+    """
+    target_user = get_object_or_404(User, pk=pk)
+    
+    # Sécurité : Un biblio ne peut pas modifier un autre biblio/admin
+    if not request.user.est_administrateur() and target_user.role != 'adherent':
+        messages.error(request, "Action non autorisée sur ce rang.")
+        return redirect('utilisateur_liste')
+
+    plan_id = request.POST.get('plan_id')
+    
+    # Désactiver les abonnements actuels
+    Abonnement.objects.filter(adherent=target_user, est_actif=True).update(est_actif=False)
+    
+    if plan_id:
+        plan = get_object_or_404(PlanAbonnement, pk=plan_id)
+        Abonnement.objects.create(
+            adherent=target_user,
+            plan=plan,
+            date_debut=timezone.now(),
+            duree_choisie='mensuel',
+            est_actif=True
+        )
+        messages.success(request, f"Le sceau {plan.nom} a été attribué manuellement à {target_user.username}.")
+    else:
+        messages.info(request, f"Tous les sceaux ont été révoqués pour {target_user.username}.")
+        
+    return redirect('utilisateur_liste')
 
 @login_required
 @admin_required
@@ -654,10 +767,16 @@ def utilisateur_changer_role(request, pk):
     return redirect('utilisateur_liste')
 
 @login_required
-@admin_required
+@bibliothecaire_required
 def utilisateur_gracier(request, pk):
     """Accorder un déblocage administratif (Grâce présidentielle)"""
     target_user = get_object_or_404(User, pk=pk)
+
+    # Sécurité : Un biblio ne peut gracier que des adhérents
+    if not request.user.est_administrateur() and target_user.role != 'adherent':
+        messages.error(request, "Action non autorisée sur ce rang.")
+        return redirect('utilisateur_liste')
+
     target_user.debloque_par_admin = not target_user.debloque_par_admin
     target_user.save()
     
@@ -698,11 +817,15 @@ def mon_activite(request):
             e.nb_jours_retard = math.ceil(diff.total_seconds() / 86400)
         else:
             e.nb_jours_retard = 0
+
+    # Récupérer l'abonnement pour afficher les limites (2 ou 5 livres)
+    abonnement = request.user.get_abonnement_actif()
         
     context = {
         'en_validation': en_validation,
         'emprunts_actifs': emprunts_actifs,
         'aujourdhui': aujourdhui,
+        'abonnement': abonnement,
     }
     return render(request, 'core/mon_activite.html', context)
 
@@ -729,28 +852,22 @@ def souscrire_abonnement(request):
         
         plan = get_object_or_404(PlanAbonnement, pk=plan_id)
         
-        # Calcul de la date de fin
-        if duree == 'annuel':
-            prix = plan.prix_annuel
-            date_fin = timezone.now() + timedelta(days=365)
-        else:
-            prix = plan.prix_mensuel
-            date_fin = timezone.now() + timedelta(days=30)
-        
+        # Calcul du prix pour le message de succès
+        prix = plan.prix_annuel if duree == 'annuel' else plan.prix_mensuel
+
         # On archive l'ancien abonnement
         if abonnement_actif:
             abonnement_actif.est_actif = False
             abonnement_actif.save()
-        
+
         # On crée le nouveau sceau officiel
         Abonnement.objects.create(
             adherent=request.user,
             plan=plan,
             date_debut=timezone.now(),
-            date_fin=date_fin,
+            duree_choisie=duree,
             est_actif=True
-        )
-        
+        )        
         messages.success(request, f"Privilège {plan.nom} accordé. Montant de {prix} MAD simulé avec succès.")
         return redirect('mes_abonnements')
     
@@ -777,10 +894,15 @@ def mes_abonnements(request):
     })
 
 @login_required
-@admin_required
+@bibliothecaire_required
 def admin_abonnements(request):
     """Console de pilotage unifiée : KPIs + Gestion des membres + Plans."""
-    adherents = User.objects.filter(role='adherent')
+    if request.user.est_administrateur():
+        adherents = User.objects.filter(role='adherent').prefetch_related('abonnements__plan')
+    else:
+        # Biblio voit seulement les adhérents (déjà filtré par le QuerySet ci-dessus)
+        adherents = User.objects.filter(role='adherent').prefetch_related('abonnements__plan')
+
     plans = PlanAbonnement.objects.all().order_by('prix_mensuel')
     
     adherents_data = []
@@ -804,7 +926,7 @@ def admin_abonnements(request):
     })
 
 @login_required
-@admin_required
+@bibliothecaire_required
 def renouveler_abonnement(request, abonnement_id):
     """Action administrative de renouvellement forcé."""
     abonnement = get_object_or_404(Abonnement, pk=abonnement_id)
@@ -830,3 +952,406 @@ def annuler_abonnement(request):
     else:
         messages.info(request, "Aucun abonnement actif à annuler.")
     return redirect('mes_abonnements')
+
+
+# ============================================================
+# E-LIBRARY (J9)
+# ============================================================
+
+@login_required
+def e_library(request):
+    """
+    Catalogue numérique : liste des livres avec version numérique.
+    Accessible uniquement aux adhérents Premium ou Admin/Biblio.
+    """
+    
+    # Vérifier l'accès (sauf pour Admin/Biblio)
+    if not (request.user.est_administrateur() or request.user.est_bibliothecaire()):
+        peut_acceder, message = request.user.peut_acceder_e_library()
+        if not peut_acceder:
+            messages.warning(request, message)
+            return redirect('dashboard')
+    
+    # Récupérer les livres numériques
+    livres_numeriques = Livre.objects.filter(a_version_numerique=True).select_related('auteur_fk')
+    
+    # Récupérer les consultations de l'utilisateur
+    consultations = ConsultationNumerique.objects.filter(adherent=request.user).values_list('livre_id', flat=True)
+    
+    # Compter les vues totales (pour statistiques)
+    total_vues = ConsultationNumerique.objects.count()
+    
+    context = {
+        'livres': livres_numeriques,
+        'consultations': consultations,
+        'total_vues': total_vues,
+        'est_premium': request.user.get_abonnement_actif() and request.user.get_abonnement_actif().plan.acces_e_library,
+    }
+    return render(request, 'core/e_library.html', context)
+
+
+@login_required
+def lire_livre_numerique(request, livre_id):
+    """
+    Visionneuse PDF intégrée.
+    Enregistre la consultation et affiche le PDF.
+    """
+    try:
+        livre = Livre.objects.get(pk=livre_id, a_version_numerique=True)
+    except Livre.DoesNotExist:
+        messages.error(request, "Livre numérique non trouvé.")
+        return redirect('e_library')
+    
+    # Vérifier l'accès (sauf pour Admin/Biblio)
+    if not (request.user.est_administrateur() or request.user.est_bibliothecaire()):
+        peut_acceder, message = request.user.peut_acceder_e_library()
+        if not peut_acceder:
+            messages.warning(request, message)
+            return redirect('dashboard')
+    
+    # Enregistrer la consultation
+    ConsultationNumerique.objects.get_or_create(
+        adherent=request.user,
+        livre=livre
+    )
+    
+    context = {
+        'livre': livre,
+        'pdf_url': livre.fichier_pdf.url if livre.fichier_pdf else None,
+    }
+    return render(request, 'core/lire_livre_numerique.html', context)
+
+
+@login_required
+def telecharger_livre_numerique(request, livre_id):
+    """
+    Téléchargement du fichier PDF (optionnel, sécurisé).
+    Vérifie les droits avant de servir le fichier.
+    """
+    try:
+        livre = Livre.objects.get(pk=livre_id, a_version_numerique=True)
+    except Livre.DoesNotExist:
+        messages.error(request, "Livre numérique non trouvé.")
+        return redirect('e_library')
+    
+    # Vérifier l'accès
+    if not (request.user.est_administrateur() or request.user.est_bibliothecaire()):
+        peut_acceder, message = request.user.peut_acceder_e_library()
+        if not peut_acceder:
+            messages.warning(request, message)
+            return redirect('dashboard')
+    
+    if livre.fichier_pdf:
+        return redirect(livre.fichier_pdf.url)
+    else:
+        messages.error(request, "Fichier non disponible.")
+        return redirect('e_library')
+
+
+# ============================================================
+# GESTION DES AUTEURS (New)
+# ============================================================
+
+@login_required
+@bibliothecaire_required
+def auteur_liste(request):
+    """Liste des auteurs pour modification par le personnel."""
+    auteurs = Auteur.objects.all().order_by('nom')
+    return render(request, 'core/auteur_liste.html', {'auteurs': auteurs})
+
+@login_required
+@bibliothecaire_required
+def auteur_modifier(request, pk):
+    """Modifier les infos d'un auteur."""
+    auteur = get_object_or_404(Auteur, pk=pk)
+    if request.method == 'POST':
+        auteur.nom = request.POST.get('nom')
+        auteur.biographie = request.POST.get('biographie')
+        if request.FILES.get('photo'):
+            auteur.photo = request.FILES.get('photo')
+        auteur.save()
+        messages.success(request, f"Les informations de {auteur.nom} ont été mises à jour.")
+        return redirect('auteur_liste')
+    return render(request, 'core/auteur_form.html', {'auteur': auteur})
+
+
+# ============================================================
+# PAIEMENT DES PÉNALITÉS (J10)
+# ============================================================
+
+@login_required
+def payer_penalites(request):
+    """
+    Permet à un adhérent de payer ses pénalités (simulation).
+    Débloque automatiquement l'accès après paiement.
+    Inclut les dettes latentes sur livres non rendus.
+    """
+    if not request.user.est_adherent():
+        messages.error(request, "Accès non autorisé.")
+        return redirect('dashboard')
+    
+    # 1. Récupérer les pénalités impayées (réelles)
+    penalites_impayees = list(Penalite.objects.filter(adherent=request.user, est_reglee=False))
+    
+    # 2. Calculer les pénalités latentes (livres en retard non encore rendus)
+    emprunts_en_retard = request.user.emprunts.filter(statut='en_cours', est_retourne=False)
+    dettes_latentes = []
+    total_latente = 0
+    
+    for e in emprunts_en_retard:
+        montant = e.calculer_penalite()
+        if montant > 0:
+            dettes_latentes.append({'emprunt': e, 'montant': montant})
+            total_latente += montant
+
+    total_dette = sum(p.montant for p in penalites_impayees) + total_latente
+    
+    if request.method == 'POST':
+        # Simulation de paiement
+        # Régler les pénalités existantes
+        for penalite in penalites_impayees:
+            penalite.regler()
+            
+        # Régler les dettes latentes en "retournant" les livres
+        for item in dettes_latentes:
+            e = item['emprunt']
+            e.retourner_livre() # Ceci crée une Penalite réelle et met à jour le stock
+            # On la règle immédiatement
+            p_reelle = Penalite.objects.filter(emprunt=e, est_reglee=False).first()
+            if p_reelle:
+                p_reelle.regler()
+        
+        messages.success(
+            request, 
+            f"✅ Paiement effectué ! Vous avez réglé {total_dette} MAD. "
+            f"Votre compte est maintenant débloqué et vos emprunts en retard ont été régularisés."
+        )
+        return redirect('mes_penalites')
+    
+    context = {
+        'penalites': penalites_impayees,
+        'dettes_latentes': dettes_latentes,
+        'total_dette': total_dette,
+    }
+    return render(request, 'core/payer_penalites.html', context)
+
+
+@login_required
+def admin_grace(request, user_id):
+    """
+    Admin : Accorder une grâce administrative (déblocage manuel)
+    """
+    if not request.user.est_administrateur():
+        messages.error(request, "Accès réservé aux administrateurs.")
+        return redirect('dashboard')
+    
+    try:
+        adherent = User.objects.get(pk=user_id, role='adherent')
+    except User.DoesNotExist:
+        messages.error(request, "Adhérent non trouvé.")
+        return redirect('admin_abonnements')
+    
+    # Activer le déblocage administratif
+    adherent.debloque_par_admin = True
+    adherent.save()
+    
+    messages.success(
+        request, 
+        f"Grâce accordée à {adherent.username}. "
+        f"Il peut maintenant emprunter malgré les pénalités."
+    )
+    return redirect('admin_abonnements')
+
+
+@login_required
+def admin_revoquer_grace(request, user_id):
+    """
+    Admin : Révoquer la grâce administrative
+    """
+    if not request.user.est_administrateur():
+        messages.error(request, "Accès réservé aux administrateurs.")
+        return redirect('dashboard')
+    
+    try:
+        adherent = User.objects.get(pk=user_id, role='adherent')
+    except User.DoesNotExist:
+        messages.error(request, "Adhérent non trouvé.")
+        return redirect('admin_abonnements')
+    
+    adherent.debloque_par_admin = False
+    adherent.save()
+    
+    messages.success(request, f"Grâce révoquée pour {adherent.username}.")
+    return redirect('admin_abonnements')
+
+
+# ============================================================
+# COMMUNITY & AVIS (New)
+# ============================================================
+
+@login_required
+def donner_avis(request, livre_id):
+    """Soumettre ou modifier un avis sur un livre."""
+    livre = get_object_or_404(Livre, pk=livre_id)
+    if request.method == 'POST':
+        note = request.POST.get('note')
+        commentaire = request.POST.get('commentaire')
+        
+        avis, created = Avis.objects.update_or_create(
+            adherent=request.user,
+            livre=livre,
+            defaults={'note': int(note), 'commentaire': commentaire}
+        )
+        
+        messages.success(request, "Votre avis a été consigné dans les archives. Merci !")
+    return redirect('livre_detail', pk=livre_id)
+
+
+# ============================================================
+# STATISTIQUES ET GRAPHIQUES (J11)
+# ============================================================
+
+@login_required
+def statistiques(request):
+    """
+    Dashboard statistique avec graphiques (Admin uniquement)
+    """
+    if not request.user.est_administrateur():
+        messages.error(request, "Accès réservé aux administrateurs.")
+        return redirect('dashboard')
+    
+    # Statistiques générales
+    total_adherents = User.objects.filter(role='adherent').count()
+    total_bibliothecaires = User.objects.filter(role='bibliothecaire').count()
+    total_livres = Livre.objects.count()
+    total_emprunts = Emprunt.objects.count()
+    emprunts_en_cours = Emprunt.objects.filter(statut='en_cours').count()
+    
+    # Chiffre d'affaires (abonnements actifs)
+    abonnements_actifs = Abonnement.objects.filter(est_actif=True)
+    ca_mensuel = sum(a.plan.prix_mensuel for a in abonnements_actifs if a.plan)
+    
+    # Pénalités
+    total_penalites = Penalite.objects.filter(est_reglee=False).aggregate(Sum('montant'))['montant__sum'] or 0
+    
+    # Top livres
+    top_livres = Emprunt.objects.filter(
+        statut='rendu'
+    ).values(
+        'livre__titre', 'livre__auteur'
+    ).annotate(
+        total_emprunts=Count('id')
+    ).order_by('-total_emprunts')[:5]
+    
+    # 1. Finances : Détail des revenus (Point 10 du CDC)
+    revenus_penalites = Penalite.objects.filter(est_reglee=True).aggregate(Sum('montant'))['montant__sum'] or 0
+    
+    # Simulation des revenus abonnements (Prix moyen 50 MAD / mois pour les actifs)
+    nb_abonnements_actifs = Abonnement.objects.filter(est_actif=True).count()
+    revenus_abonnements = nb_abonnements_actifs * 50 # Valeur pivot théorique pour le dashboard
+    
+    benefice_total = revenus_penalites + revenus_abonnements
+    
+    # 2. Top Auteurs (Statistiques Littéraires)
+    top_auteurs = Auteur.objects.annotate(
+        total_emprunts=Count('livres__emprunts', filter=Q(livres__emprunts__statut='rendu'))
+    ).order_by('-total_emprunts')[:5]
+
+    # 3. Répartition abonnements
+    repartition_abonnements = {
+        'Standard': Abonnement.objects.filter(plan__nom='Standard', est_actif=True).count(),
+        'Premium': Abonnement.objects.filter(plan__nom='Premium', est_actif=True).count(),
+        'Sans': User.objects.filter(role='adherent').exclude(abonnements__est_actif=True).count()
+    }
+    
+    # 4. Évolution Financière Mensuelle (Simulation basée sur les paiements réels)
+    # On groupe les pénalités par mois
+    evol_finance = Penalite.objects.filter(est_reglee=True).annotate(
+        mois=TruncMonth('date_paiement')
+    ).values('mois').annotate(
+        total=Sum('montant')
+    ).order_by('mois')
+    
+    labels_finance = [item['mois'].strftime('%b %Y') for item in evol_finance]
+    data_finance = [float(item['total']) for item in evol_finance]
+
+    # Top 5 lecteurs les plus actifs
+    lecteurs_actifs = User.objects.filter(role='adherent').annotate(
+        total_emprunts=Count('emprunts', filter=Q(emprunts__statut='rendu'))
+    ).order_by('-total_emprunts')[:5]
+
+    # Dernières pénalités réglées
+    paiements_recents = Penalite.objects.filter(est_reglee=True).select_related('adherent', 'emprunt__livre').order_by('-date_paiement')[:5]
+
+    context = {
+        'total_adherents': total_adherents,
+        'total_bibliothecaires': total_bibliothecaires,
+        'total_livres': total_livres,
+        'total_emprunts': total_emprunts,
+        'emprunts_en_cours': emprunts_en_cours,
+        'ca_mensuel': ca_mensuel,
+        'benefice_total': benefice_total,
+        'revenus_penalites': revenus_penalites,
+        'revenus_abonnements': revenus_abonnements,
+        'top_livres': top_livres,
+        'top_auteurs': top_auteurs,
+        'lecteurs_actifs': lecteurs_actifs,
+        'paiements_recents': paiements_recents,
+        'repartition_abonnements': json.dumps(repartition_abonnements),
+        'labels_finance': json.dumps(labels_finance),
+        'data_finance': json.dumps(data_finance),
+    }
+    return render(request, 'core/statistiques.html', context)
+
+
+def api_emprunts_mensuels(request):
+    """
+    API pour les graphiques : emprunts par mois (derniers 12 mois)
+    """
+    if not request.user.is_authenticated or not request.user.est_administrateur():
+        return JsonResponse({'error': 'Non autorisé'}, status=403)
+    
+    # Compter les emprunts par mois
+    date_limite = timezone.now() - timedelta(days=365)
+    emprunts_par_mois = (
+        Emprunt.objects.filter(date_emprunt__gte=date_limite)
+        .annotate(mois=TruncMonth('date_emprunt'))
+        .values('mois')
+        .annotate(total=Count('id'))
+        .order_by('mois')
+    )
+    
+    # Formater pour Chart.js
+    labels = []
+    data = []
+    for item in emprunts_par_mois:
+        labels.append(item['mois'].strftime('%b %Y'))
+        data.append(item['total'])
+    
+    return JsonResponse({
+        'labels': labels,
+        'data': data,
+    })
+
+
+def api_top_livres(request):
+    """
+    API pour les graphiques : top 5 livres les plus empruntés
+    """
+    if not request.user.is_authenticated or not request.user.est_administrateur():
+        return JsonResponse({'error': 'Non autorisé'}, status=403)
+    
+    top_livres = (
+        Emprunt.objects.filter(statut='rendu')
+        .values('livre__titre')
+        .annotate(total_emprunts=Count('id'))
+        .order_by('-total_emprunts')[:5]
+    )
+    
+    labels = [item['livre__titre'][:20] for item in top_livres]
+    data = [item['total_emprunts'] for item in top_livres]
+    
+    return JsonResponse({
+        'labels': labels,
+        'data': data,
+    })

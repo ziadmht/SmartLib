@@ -2,54 +2,78 @@
 {% block title %}Registre des Prêts - SmartLib Oxford{% endblock %}
 
 {% block content %}
-<div class="reveal">
-    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
-        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
-            <i class="fas fa-pen-nib me-3"></i>Registre des Mouvements
-        </h1>
+<div class="reveal-fast container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-4">
+        <div>
+            <h1 class="display-5 fw-bold text-oxford-blue mb-1" style="font-family: 'Cinzel', serif;">
+                <i class="fas fa-microscope me-3 text-gold-leaf"></i>Contrôle des Mouvements
+            </h1>
+            <p class="text-muted small text-uppercase letter-spacing-2 mb-0">Gestion centralisée des flux documentaires et sanctions</p>
+        </div>
         <div class="text-end">
-            <a href="{% url 'emprunt_manuel' %}" class="btn btn-academic bg-dark">
-                <i class="fas fa-plus me-2"></i> Nouveau Prêt Direct
+            <a href="{% url 'emprunt_manuel' %}" class="btn btn-academic bg-oxford-blue text-white py-3 px-4 shadow-lg border-0">
+                <i class="fas fa-plus-circle me-2 text-gold-leaf"></i> NOUVEAU PRÊT COMPTOIR
             </a>
         </div>
     </div>
 
     <!-- SECTION 1 : DEMANDES EN ATTENTE (CRITIQUE) -->
-    <div class="card shadow-lg mb-5 border-0">
-        <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-uppercase fw-bold small"><i class="fas fa-bell pulse-warning me-2"></i> Demandes de Réservation à Valider</h5>
-            <span class="badge bg-dark rounded-pill">{{ demandes.count }}</span>
+    <div class="card shadow-2xl mb-5 border-0 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header bg-warning text-dark py-4 d-flex justify-content-between align-items-center border-0">
+            <div>
+                <h5 class="mb-0 text-uppercase fw-900 small"><i class="fas fa-bell animate__animated animate__swing animate__infinite me-2"></i> Guichet des Réservations</h5>
+                <p class="x-small mb-0 opacity-75">Demandes soumises par les adhérents en attente de validation physique</p>
+            </div>
+            <span class="badge bg-dark px-3 py-2 fs-6 shadow-sm">{{ demandes.count }}</span>
         </div>
         <div class="card-body p-0">
             {% if demandes %}
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light small">
+                    <thead class="bg-light-bois text-oxford-blue text-uppercase x-small fw-bold">
                         <tr>
-                            <th class="ps-4">Adhérent</th>
-                            <th>Ouvrage</th>
-                            <th>Date Demande</th>
-                            <th class="text-center">Décision Administrative</th>
+                            <th class="ps-4 py-3">Identité de l'Adhérent</th>
+                            <th>Ouvrage & Référence</th>
+                            <th>Timing de Soumission</th>
+                            <th>Vérification Stock</th>
+                            <th class="text-center">Action Administrative</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for d in demandes %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="fw-bold text-oxford-blue">{{ d.adherent.username|upper }}</div>
-                                <div class="small text-muted">{{ d.adherent.email }}</div>
+                        <tr class="border-start border-4 border-warning">
+                            <td class="ps-4 py-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-oxford-blue text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 40px; height: 40px;">
+                                        {{ d.adherent.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-oxford-blue">{{ d.adherent.username|upper }}</div>
+                                        <div class="x-small text-muted">{{ d.adherent.email }}</div>
+                                    </div>
+                                </div>
                             </td>
                             <td>
-                                <div class="fw-bold">{{ d.livre.titre }}</div>
-                                <div class="small opacity-50">REF: {{ d.livre.isbn|default:"-" }}</div>
+                                <div class="fw-bold text-dark">{{ d.livre.titre }}</div>
+                                <div class="x-small text-muted font-monospace">ISBN: {{ d.livre.isbn|default:"SANS-RÉF" }}</div>
                             </td>
-                            <td>{{ d.date_emprunt|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="small fw-bold">{{ d.date_emprunt|date:"d M Y" }}</div>
+                                <div class="x-small text-muted">à {{ d.date_emprunt|date:"H:i" }}</div>
+                            </td>
+                            <td>
+                                {% if d.livre.quantite_disponible > 0 %}
+                                    <span class="badge bg-soft-success text-success border border-success border-opacity-25 px-3">DISPONIBLE ({{ d.livre.quantite_disponible }})</span>
+                                {% else %}
+                                    <span class="badge bg-soft-danger text-danger border border-danger border-opacity-25 px-3">STOCK ÉPUISÉ</span>
+                                {% endif %}
+                            </td>
                             <td class="text-center">
-                                <div class="btn-group shadow-sm">
-                                    <a href="{% url 'emprunt_approuver' d.id %}" class="btn btn-success btn-sm px-3">
-                                        <i class="fas fa-check me-1"></i> Approuver
+                                <div class="btn-group shadow-sm" style="border-radius: 50px; overflow: hidden;">
+                                    <a href="{% url 'emprunt_approuver' d.id %}" class="btn btn-success btn-sm px-4 py-2 border-0">
+                                        <i class="fas fa-check me-1"></i> VALIDER
                                     </a>
-                                    <a href="{% url 'emprunt_refuser' d.id %}" class="btn btn-outline-danger btn-sm px-3" onclick="return confirm('Refuser cette demande ?')">
+                                    <a href="{% url 'emprunt_refuser' d.id %}" class="btn btn-danger btn-sm px-3 py-2 border-0" onclick="return confirm('Refuser cette demande ?')">
                                         <i class="fas fa-times"></i>
                                     </a>
                                 </div>
@@ -60,71 +84,142 @@
                 </table>
             </div>
             {% else %}
-            <div class="p-4 text-center text-muted italic small">Aucune demande en attente.</div>
+            <div class="p-5 text-center text-muted">
+                <i class="fas fa-check-double fa-3x mb-3 opacity-25"></i>
+                <p class="lead small italic">Aucune réservation en attente de traitement.</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
     <!-- SECTION 2 : PRÊTS ACTIFS (SURVEILLANCE) -->
-    <div class="card shadow-lg mb-5 border-0">
-        <div class="card-header bg-oxford-blue text-white py-3">
-            <h5 class="mb-0 text-uppercase fw-bold small"><i class="fas fa-book-reader me-2"></i> Prêts Actifs & Surveillance des Retards</h5>
+    <div class="card shadow-2xl border-0 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header bg-oxford-blue text-white py-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 text-uppercase fw-900 small"><i class="fas fa-satellite-dish me-2 text-gold-leaf"></i> Surveillance des Flux Actifs</h5>
+                <p class="x-small mb-0 text-white-50">Monitoring temps réel des retards et pénalités cumulées</p>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success px-3 py-2">{{ emprunts_actifs.count }} EN COURS</span>
+            </div>
         </div>
         <div class="card-body p-0">
             {% if emprunts_actifs %}
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light small">
+                    <thead class="bg-dark text-white text-uppercase x-small fw-bold">
                         <tr>
-                            <th class="ps-4">Lecteur</th>
-                            <th>Ouvrage</th>
-                            <th>Échéance</th>
-                            <th>État Financier</th>
-                            <th class="text-center">Clôture</th>
+                            <th class="ps-4 py-3">Détenteur</th>
+                            <th>Ouvrage en Circulation</th>
+                            <th>Compteur d'Échéance</th>
+                            <th>Indemnité de Retard</th>
+                            <th class="text-center">Administration</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for e in emprunts_actifs %}
-                        <tr class="{% if e.est_en_retard %}table-light-danger{% endif %}">
-                            <td class="ps-4 py-3">
-                                <div class="fw-bold">{{ e.adherent.username|upper }}</div>
+                        {% with retard=e.est_en_retard %}
+                        <tr class="card-row-timing {% if retard %}retard-row animate__animated animate__fadeIn{% endif %}" data-deadline="{{ e.date_retour_prevue|date:'c' }}">
+                            <td class="ps-4 py-4">
+                                <div class="fw-900 text-oxford-blue">{{ e.adherent.username|upper }}</div>
+                                <div class="x-small text-muted">ID: #{{ e.adherent.id|add:"8000" }}</div>
                             </td>
-                            <td>{{ e.livre.titre }}</td>
                             <td>
-                                <div class="fw-bold {% if e.est_en_retard %}text-danger{% endif %}">
-                                    {{ e.date_retour_prevue|date:"d/m/Y" }}
+                                <div class="fw-bold">{{ e.livre.titre }}</div>
+                                <div class="x-small text-muted">Émis le {{ e.date_emprunt|date:"d/m/Y" }}</div>
+                            </td>
+                            <td>
+                                <div class="timing-badge-lux {% if retard %}bg-danger{% else %}bg-light border{% endif %} p-2 rounded shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="x-small fw-bold {% if retard %}text-white{% else %}text-muted{% endif %}">RETOUR DANS :</span>
+                                        <span class="status-dot {% if retard %}bg-white animate__animated animate__flash animate__infinite{% else %}bg-success{% endif %}"></span>
+                                    </div>
+                                    <div class="countdown-text fw-bold {% if retard %}text-white{% else %}text-oxford-blue{% endif %} font-monospace" style="font-size: 0.9rem;">
+                                        CALCUL...
+                                    </div>
                                 </div>
-                                {% if e.est_en_retard %}
-                                <span class="badge bg-danger x-small">RETARD CRITIQUE</span>
-                                {% endif %}
                             </td>
                             <td>
-                                <span class="fw-bold">{{ e.calculer_penalite }} MAD</span>
+                                <div class="penalite-val h6 mb-0 fw-bold {% if retard %}text-danger animate__animated animate__pulse animate__infinite{% else %}text-muted{% endif %}">
+                                    {{ e.calculer_penalite }} MAD
+                                </div>
+                                <div class="x-small opacity-50">Base: 3 MAD/J</div>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group shadow-sm">
-                                    <a href="{% url 'emprunt_retour' e.id %}" class="btn btn-academic btn-sm py-2">
-                                        <i class="fas fa-undo-alt me-1"></i> Retour
+                                    <a href="{% url 'emprunt_retour' e.id %}" class="btn btn-academic bg-oxford-blue text-white btn-sm px-4">
+                                        <i class="fas fa-file-import me-1"></i> ENREGISTRER RETOUR
                                     </a>
-                                    <a href="{% url 'simuler_retard' e.id %}" class="btn btn-outline-info btn-sm py-2" title="Simuler un retard (Baguette Magique)">
-                                        <i class="fas fa-magic"></i>
+                                    <a href="{% url 'simuler_retard' e.id %}" class="btn btn-outline-info btn-sm" title="Forcer retard (DÉMO)">
+                                        <i class="fas fa-bolt"></i>
                                     </a>
                                 </div>
                             </td>
                         </tr>
+                        {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             {% else %}
-            <div class="p-4 text-center text-muted small">Aucun prêt actif dans la base.</div>
+            <div class="p-5 text-center text-muted">
+                <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                <p class="lead small">Aucun ouvrage n'est actuellement en circulation.</p>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
 
 <style>
-    .table-light-danger { background-color: rgba(220, 53, 69, 0.05); }
-    .x-small { font-size: 0.6rem; letter-spacing: 1px; }
+    .fw-900 { font-weight: 900; }
+    .bg-light-bois { background-color: #f8f4f0; }
+    .shadow-2xl { box-shadow: 0 15px 50px rgba(0,0,0,0.1); }
+    .letter-spacing-2 { letter-spacing: 2px; }
+    
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .bg-soft-success { background: rgba(40, 167, 69, 0.1); }
+    .bg-soft-danger { background: rgba(220, 53, 69, 0.1); }
+
+    .retard-row { background-color: rgba(220, 53, 69, 0.03); }
+    .timing-badge-lux { min-width: 180px; transition: 0.3s; }
+    
+    .card-row-timing:hover .timing-badge-lux { transform: scale(1.05); }
+    
+    .font-monospace { font-family: 'JetBrains Mono', 'Courier New', monospace; }
 </style>
+
+<script>
+    function updateClocks() {
+        const now = new Date();
+        document.querySelectorAll('.card-row-timing').forEach(row => {
+            const display = row.querySelector('.countdown-text');
+            const badge = row.querySelector('.timing-badge-lux');
+            if (!display) return;
+
+            const deadline = new Date(row.dataset.deadline);
+            const diff = deadline - now;
+
+            if (diff <= 0) {
+                display.innerText = "RETARD DÉTECTÉ";
+                if (badge && !badge.classList.contains('bg-danger')) {
+                    badge.classList.remove('bg-light', 'border');
+                    badge.classList.add('bg-danger');
+                    display.classList.add('text-white');
+                    display.classList.remove('text-oxford-blue');
+                }
+            } else {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                display.innerText = `${days}j ${hours}h ${mins}m ${secs}s`;
+            }
+        });
+    }
+
+    setInterval(updateClocks, 1000);
+    updateClocks();
+</script>
 {% endblock %}

@@ -1,32 +1,35 @@
 {% extends 'core/base.html' %}
-{% block title %}Pôle Économique - SmartLib Admin{% endblock %}
+{% block title %}Grand Registre des Finances - SmartLib Royale{% endblock %}
 
 {% block content %}
 <div class="reveal">
     <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
-        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
-            <i class="fas fa-vault me-3"></i>Pôle Économique & Privilèges
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Cinzel', serif;">
+            <i class="fas fa-vault me-3 text-dore"></i>Registre des <span class="text-rouge-roi">Privilèges</span>
         </h1>
         <div class="text-end">
-            <span class="badge bg-dark px-3 py-2 border border-gold-brass text-gold-leaf text-uppercase x-small">Audit Financier J8</span>
+            <span class="badge-royal px-4 py-2 shadow-sm text-uppercase small"><i class="fas fa-chart-line me-2"></i>Audit Financier 2026</span>
         </div>
     </div>
 
-    <!-- 1. GRILLE TARIFAIRE (LA NOUVELLE VERSION) -->
-    <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small letter-spacing-2"><i class="fas fa-tags me-2"></i> Configuration des Sceaux</h4>
+    <!-- 1. GRILLE TARIFAIRE CONFIGURÉE -->
+    <h4 class="fw-bold text-oxford-blue mb-4 text-uppercase small" style="letter-spacing: 2px;"><i class="fas fa-tags me-2 text-rouge-roi"></i> I. Sceaux Royaux en Vigueur</h4>
     <div class="row g-4 mb-5">
         {% for plan in plans %}
         <div class="col-md-6">
-            <div class="card card-vault h-100 p-4 border-0 border-start border-5 {% if plan.nom == 'Premium' %}border-gold-leaf{% else %}border-oxford-blue{% endif %} shadow-sm">
-                <div class="d-flex justify-content-between">
+            <div class="card h-100 p-4 border-0 shadow-lg bg-white" style="border-left: 8px solid {% if plan.nom == 'Premium' %}var(--dore){% else %}var(--oxford-blue){% endif %} !important;">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h5 class="fw-bold mb-0 text-oxford-blue">{{ plan.nom|upper }}</h5>
-                        <div class="display-6 fw-bold mt-2">{{ plan.prix_mensuel }} MAD</div>
-                        <small class="text-muted text-uppercase">Par Mois ({{ plan.prix_annuel }} MAD / An)</small>
+                        <h4 class="fw-bold mb-1 text-oxford-blue">{{ plan.nom|upper }}</h4>
+                        <div class="display-6 fw-bold text-rouge-roi">{{ plan.prix_mensuel }} <small class="h6 text-oxford-blue">MAD</small></div>
+                        <p class="text-muted small mb-0 text-uppercase fw-bold">{{ plan.prix_annuel }} MAD / AN (ÉCONOMIQUE)</p>
                     </div>
                     <div class="text-end">
-                        <span class="badge bg-light text-dark border mb-2">Quota: {{ plan.limite_emprunts_physiques }}</span><br>
-                        <span class="badge {% if plan.acces_e_library %}bg-success{% else %}bg-danger{% endif %}">E-Library: {% if plan.acces_e_library %}OUI{% else %}NON{% endif %}</span>
+                        <div class="badge bg-oxford-blue text-dore mb-2 shadow-sm">QUOTA: {{ plan.limite_emprunts_physiques }}</div><br>
+                        <span class="badge {% if plan.acces_e_library %}bg-success{% else %}bg-danger{% endif %} shadow-sm">
+                            <i class="fas {% if plan.acces_e_library %}fa-cloud{% else %}fa-lock{% endif %} me-1"></i>
+                            E-Library: {% if plan.acces_e_library %}OUVERT{% else %}FERMÉ{% endif %}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -34,75 +37,95 @@
         {% endfor %}
     </div>
 
-    <!-- 2. KPIs FINANCIERS -->
-    <div class="row g-4 mb-5">
+    <!-- 2. KPIs FINANCIERS DU MOIS -->
+    <div class="row g-4 mb-5 text-center">
         <div class="col-md-4">
-            <div class="card p-4 border-0 shadow bg-oxford-blue text-white">
-                <div class="small opacity-50 text-uppercase">Population Adhérente</div>
-                <div class="display-5 fw-bold">{{ total_adherents }}</div>
+            <div class="card border-0 shadow-lg bg-oxford-blue text-white p-4">
+                <div class="small text-uppercase opacity-75 fw-bold letter-spacing-1 mb-2">Population Royale</div>
+                <div class="h2 fw-bold text-dore mb-0">{{ total_adherents }} <span class="h6 text-white opacity-75">Adhérents</span></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card p-4 border-0 shadow bg-success text-white">
-                <div class="small opacity-50 text-uppercase">Sceaux Actifs</div>
-                <div class="display-5 fw-bold">{{ abonnes_actifs }}</div>
+            <div class="card border-0 shadow-lg bg-rouge-roi text-white p-4">
+                <div class="small text-uppercase opacity-75 fw-bold letter-spacing-1 mb-2">Sceaux Actifs</div>
+                <div class="h2 fw-bold text-white mb-0">{{ abonnes_actifs }} <span class="h6 opacity-75">Privilégiés</span></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card p-4 border-0 shadow bg-dark text-white">
-                <div class="small opacity-50 text-uppercase">Recettes Mensuelles</div>
-                <div class="display-5 fw-bold text-gold-leaf">{{ chiffre_affaires }} MAD</div>
+            <div class="card border-0 shadow-lg bg-white p-4" style="border: 1px solid var(--bois-clair);">
+                <div class="small text-uppercase text-muted fw-bold letter-spacing-1 mb-2">Recettes Estimées</div>
+                <div class="h2 fw-bold text-rouge-roi mb-0">{{ chiffre_affaires }} <small class="h6 text-oxford-blue">MAD/mois</small></div>
             </div>
         </div>
     </div>
 
-    <!-- 3. REGISTRE DES DROITS -->
-    <div class="card shadow-2xl border-0 bg-white">
-        <div class="card-header bg-dark text-white py-3">
-            <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-users-cog me-2"></i> Registre Central des Droits d'Accès</h5>
+    <!-- 3. REGISTRE CENTRAL DES MEMBRES -->
+    <div class="card border-0 shadow-2xl overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header bg-oxford-blue text-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-uppercase small fw-bold text-dore"><i class="fas fa-users-gear me-2 text-rouge-roi"></i> Registre Central des Droits d'Accès</h5>
+            <div class="small italic opacity-75">Mise à jour en temps réel</div>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 bg-parchemin">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light small">
+                    <thead class="bg-bois-clair text-oxford-blue x-small fw-bold text-uppercase">
                         <tr>
-                            <th class="ps-4">Membre</th>
-                            <th>Sceau Actif</th>
-                            <th>Expiration</th>
-                            <th class="text-center">Alerte Sanction</th>
-                            <th class="text-center">Décision Admin</th>
+                            <th class="ps-4">Sujet / Adhérent</th>
+                            <th>Sceau Actuel</th>
+                            <th>État des Sanctions</th>
+                            <th class="text-center">Grâce Admin</th>
+                            <th class="text-center">Action Scribe</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for data in adherents_data %}
-                        <tr>
+                        <tr class="border-bottom border-light">
                             <td class="ps-4 py-3">
-                                <div class="fw-bold">{{ data.adherent.username|upper }}</div>
-                                <div class="small text-muted">{{ data.adherent.email }}</div>
+                                <div class="fw-bold text-oxford-blue">{{ data.adherent.username|upper }}</div>
+                                <div class="x-small text-muted fw-bold">{{ data.adherent.email }}</div>
                             </td>
                             <td>
                                 {% if data.abonnement_actif %}
-                                    <span class="badge {% if data.abonnement_actif.plan.nom == 'Premium' %}bg-gold-leaf text-dark{% else %}bg-oxford-blue{% endif %}">
-                                        {{ data.abonnement_actif.plan.nom }}
+                                    <span class="badge {% if data.abonnement_actif.plan.nom == 'Premium' %}badge-royal{% else %}bg-oxford-blue text-white{% endif %} shadow-sm">
+                                        {{ data.abonnement_actif.plan.nom|upper }}
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-danger">AUCUN SCEAU</span>
+                                    <span class="badge bg-secondary text-white small opacity-75">SANS SCEAU</span>
                                 {% endif %}
                             </td>
-                            <td>{{ data.abonnement_actif.date_fin|date:"d/m/Y"|default:"-" }}</td>
-                            <td class="text-center">
+                            <td>
                                 {% if data.a_penalite %}
-                                    <span class="badge bg-danger rounded-0 pulse-retard">INFRACTION</span>
+                                    <span class="badge bg-danger rounded-pill px-3 shadow-sm border border-white">EN INFRACTION</span>
+                                    <div class="x-small text-danger mt-1 fw-bold">{{ data.adherent.get_dette_totale }} MAD dus</div>
                                 {% else %}
-                                    <span class="badge bg-soft-success text-success border border-success rounded-0">EN RÈGLE</span>
+                                    <span class="badge bg-success rounded-pill px-3 shadow-sm border border-white">HONORABLE</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                {% if data.abonnement_actif %}
-                                <a href="{% url 'renouveler_abonnement' data.abonnement_actif.id %}" class="btn btn-outline-dark btn-sm px-3">
-                                    <i class="fas fa-sync-alt"></i>
-                                </a>
+                                {% if data.adherent.debloque_par_admin %}
+                                    <span class="badge bg-gold text-oxford-blue shadow-sm fw-bold">ACTIVÉE</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted shadow-sm border small opacity-75">INACTIVE</span>
                                 {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group shadow-sm bg-white rounded">
+                                    {% if data.abonnement_actif %}
+                                    <a href="{% url 'renouveler_abonnement' data.abonnement_actif.id %}" class="btn btn-outline-oxford btn-sm px-3" title="Prolonger Privilèges">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if data.adherent.debloque_par_admin %}
+                                    <a href="{% url 'admin_revoquer_grace' data.adherent.id %}" class="btn btn-danger btn-sm px-3" title="Révoquer la Grâce">
+                                        <i class="fas fa-lock"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'admin_grace' data.adherent.id %}" class="btn btn-royal btn-sm px-3" title="Accorder la Grâce Royale">
+                                        <i class="fas fa-crown"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -114,6 +137,9 @@
 </div>
 
 <style>
-    .bg-soft-success { background-color: rgba(40, 167, 69, 0.1); }
+    .x-small { font-size: 0.65rem; }
+    .letter-spacing-1 { letter-spacing: 1px; }
+    .btn-outline-oxford { color: var(--oxford-blue); border: 1px solid var(--oxford-blue); }
+    .btn-outline-oxford:hover { background: var(--oxford-blue); color: white; }
 </style>
 {% endblock %}

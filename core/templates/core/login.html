@@ -1,47 +1,182 @@
 {% extends 'core/base.html' %}
-{% block title %}Authentification Officielle - SmartLib{% endblock %}
+{% block title %}Accès Royal - SmartLib{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center reveal" style="min-height: 80vh;">
-    <div class="col-md-5">
-        <div class="card shadow-lg p-2" style="background: var(--oxford-blue); border: 2px solid var(--gold-leaf);">
-            <div class="card-body bg-white p-5" style="border: 1px solid var(--gold-brass); background-color: var(--paper-cream) !important; background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');">
-                <div class="text-center mb-5">
-                    <i class="fas fa-university fa-3x mb-3" style="color: var(--oxford-blue);"></i>
-                    <h2 class="fw-bold text-uppercase mb-0" style="letter-spacing: 4px; font-family: 'Libre Baskerville', serif;">SmartLib</h2>
-                    <div class="small text-muted mt-2" style="letter-spacing: 2px;">ACCÈS AUX ARCHIVES ÉLECTRONIQUES</div>
-                    <div style="height: 2px; width: 60px; background: var(--gold-leaf); margin: 20px auto;"></div>
+<div class="login-page-container position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+     style="background: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat; z-index: 1000;">
+    
+    <div class="overlay position-absolute w-100 h-100" style="background: rgba(0,33,71,0.85); backdrop-filter: blur(10px);"></div>
+    
+    <div class="book-auth-container reveal position-relative">
+        <div class="book-card shadow-2xl">
+            <!-- Spine of the book (Reliure) -->
+            <div class="book-spine">
+                <div class="spine-texture"></div>
+                <div class="spine-branding">
+                    <i class="fas fa-university fa-2x mb-3 text-dore"></i>
+                    <span class="spine-text">OXFORD HERITAGE</span>
                 </div>
+            </div>
 
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="username" class="small fw-bold text-uppercase mb-2" style="letter-spacing: 1px;">Identifiant Officiel</label>
-                        <div class="input-group border-bottom border-dark border-2">
-                            <span class="input-group-text bg-transparent border-0 px-0"><i class="fas fa-user-tie text-dark"></i></span>
-                            <input type="text" name="username" id="username" class="form-control bg-transparent border-0 shadow-none" placeholder="Nom d'utilisateur" required autofocus>
+            <!-- Page of the book (Parchemin) -->
+            <div class="book-page">
+                <div class="page-content">
+                    <div class="text-center mb-5">
+                        <div class="crest-icon-box">
+                            <i class="fas fa-shield-halved"></i>
                         </div>
+                        <h2 class="display-6 fw-bold text-oxford-blue mt-3" style="font-family: 'Cinzel';">IDENTIFICATION</h2>
+                        <div class="separator-line mx-auto"></div>
+                        <p class="small text-rouge-roi fw-bold letter-spacing-1 mt-2">REGISTRE DES PRIVILÈGES</p>
                     </div>
-                    <div class="mb-5">
-                        <label for="password" class="small fw-bold text-uppercase mb-2" style="letter-spacing: 1px;">Clef d'Accès</label>
-                        <div class="input-group border-bottom border-dark border-2">
-                            <span class="input-group-text bg-transparent border-0 px-0"><i class="fas fa-key text-dark"></i></span>
-                            <input type="password" name="password" id="password" class="form-control bg-transparent border-0 shadow-none" placeholder="••••••••" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-academic w-100 py-3 mb-4">
-                        <i class="fas fa-sign-in-alt me-2"></i> Authentifier la session
-                    </button>
-                </form>
 
-                <div class="text-center mt-4 pt-3 border-top border-dark border-opacity-10">
-                    <p class="text-muted small font-italic" style="font-family: 'Crimson Pro', serif;">
-                        "Sapere Aude - Osez Savoir"<br>
-                        <span class="opacity-50 mt-2 d-block">En cas d'oubli, veuillez consulter le bibliothécaire en chef.</span>
-                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label-vintage">IDENTIFIANT ROYAL</label>
+                            <div class="input-group-vintage">
+                                <i class="fas fa-user-shield"></i>
+                                <input type="text" name="username" class="form-control-vintage" placeholder="Nom d'utilisateur" required autofocus>
+                            </div>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label-vintage">CLEF DE SÉCURITÉ</label>
+                            <div class="input-group-vintage">
+                                <i class="fas fa-key"></i>
+                                <input type="password" name="password" class="form-control-vintage" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-royal-auth w-100 py-3 shadow-lg">
+                            <i class="fas fa-stamp me-2"></i>SCELLER LA CONNEXION
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-5">
+                        <p class="text-muted italic small mb-0">"La connaissance est la seule richesse que l'on puisse emporter avec soi."</p>
+                    </div>
                 </div>
             </div>
         </div>
+        <p class="text-center text-white mt-4 opacity-50 small fw-bold">SMARTLIB ROYALE &bull; EDITION 2026</p>
     </div>
 </div>
+
+<style>
+    .book-auth-container { width: 500px; max-width: 95%; }
+    
+    .book-card {
+        display: flex;
+        background: var(--parchemin);
+        min-height: 600px;
+        border-radius: 5px 25px 25px 5px;
+        overflow: hidden;
+        border: 2px solid var(--dore);
+    }
+
+    .book-spine {
+        width: 60px;
+        background: var(--bois-fonce);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 3px solid var(--dore);
+        box-shadow: inset -5px 0 15px rgba(0,0,0,0.5);
+    }
+
+    .spine-branding {
+        transform: rotate(-90deg);
+        white-space: nowrap;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    .spine-text {
+        font-family: 'Cinzel';
+        font-size: 0.8rem;
+        letter-spacing: 3px;
+        font-weight: 700;
+        margin-left: 15px;
+    }
+
+    .book-page {
+        flex: 1;
+        background: var(--parchemin) url('https://www.transparenttextures.com/patterns/natural-paper.png');
+        padding: 50px;
+        position: relative;
+    }
+
+    .book-page::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0; width: 30px;
+        background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+    }
+
+    .crest-icon-box {
+        width: 60px; height: 60px;
+        background: var(--oxford-blue);
+        color: var(--dore);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto;
+        font-size: 1.5rem;
+        border: 2px solid var(--dore);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .separator-line { width: 60px; height: 2px; background: var(--dore); margin-top: 15px; }
+
+    .form-label-vintage {
+        font-family: 'Poppins';
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--oxford-blue);
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .input-group-vintage {
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--bois-clair);
+        padding-bottom: 5px;
+        transition: 0.3s;
+    }
+
+    .input-group-vintage i { color: var(--rouge-roi); margin-right: 15px; font-size: 1.1rem; }
+
+    .form-control-vintage {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        font-weight: 700;
+        color: var(--oxford-blue);
+        width: 100%;
+    }
+
+    .input-group-vintage:focus-within { border-bottom-color: var(--rouge-roi); transform: translateY(-2px); }
+
+    .btn-royal-auth {
+        background: var(--oxford-blue);
+        color: var(--dore) !important;
+        border: 2px solid var(--dore);
+        font-family: 'Cinzel';
+        font-weight: 900;
+        letter-spacing: 2px;
+        transition: 0.3s;
+    }
+
+    .btn-royal-auth:hover {
+        background: var(--rouge-roi);
+        color: white !important;
+        transform: scale(1.02);
+    }
+
+    .shadow-2xl { box-shadow: 0 50px 100px rgba(0,0,0,0.6); }
+    .letter-spacing-1 { letter-spacing: 1px; }
+</style>
 {% endblock %}

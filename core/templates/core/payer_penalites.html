@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% block title %}Paiement des pénalités - SmartLib Royale{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header bg-oxford-crimson text-white py-3 text-center border-bottom border-3 border-dore">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2"></i> Régularisation des Sanctions</h4>
+            </div>
+            <div class="card-body p-5" style="background: var(--parchemin);">
+                <div class="text-center mb-4">
+                    <i class="fas fa-coins fa-4x text-dore"></i>
+                </div>
+                
+                <h5 class="text-center text-oxford-blue fw-bold mb-4">Détail du Solde Débiteur</h5>
+                
+                <div class="list-group mb-4 shadow-sm">
+                    <!-- Pénalités Réelles (Livres déjà rendus) -->
+                    {% for penalite in penalites %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center" style="background: white;">
+                        <div>
+                            <div class="fw-bold small">{{ penalite.emprunt.livre.titre|default:"Sanction Administrative" }}</div>
+                            <small class="text-muted italic">Inscrit le {{ penalite.date_creation|date:"d/m/Y" }} (Livre rendu)</small>
+                        </div>
+                        <span class="badge bg-danger rounded-pill">{{ penalite.montant }} MAD</span>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Dettes Latentes (Livres en retard non encore rendus) -->
+                    {% for item in dettes_latentes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center" style="background: #fff8f8; border-left: 4px solid #B71C1C;">
+                        <div>
+                            <div class="fw-bold small text-danger">{{ item.emprunt.livre.titre }}</div>
+                            <small class="text-muted italic">Retard en cours (Livre non encore rendu)</small>
+                        </div>
+                        <span class="badge bg-danger rounded-pill">{{ item.montant }} MAD</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-oxford-blue text-white py-3">
+                        <span class="fw-bold">TOTAL À APURER</span>
+                        <span class="h4 mb-0 fw-bold text-dore">{{ total_dette }} MAD</span>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    {% if dettes_latentes %}
+                    <div class="alert alert-warning small mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Note :</strong> En réglant les dettes latentes, les livres concernés seront marqués comme <strong>automatiquement retournés</strong> dans votre inventaire.
+                    </div>
+                    {% endif %}
+                    <div class="alert alert-info text-center small mb-4 border-2">
+                        <i class="fas fa-info-circle me-2"></i> <strong>Simulation de Paiement :</strong> Pour les besoins du PFA, toute transaction est considérée comme authentifiée.
+                    </div>
+                    <button type="submit" class="btn btn-academic bg-oxford-crimson w-100 py-3 fw-bold text-white shadow">
+                        <i class="fas fa-check-circle me-2"></i> CONFIRMER LE RÈGLEMENT DE {{ total_dette }} MAD
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'mes_penalites' %}" class="btn btn-link text-oxford-blue fw-bold text-decoration-none small">
+                        <i class="fas fa-arrow-left me-2"></i> Annuler et retourner au bureau
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-oxford-crimson { background-color: #B71C1C; }
+</style>
+{% endblock %}

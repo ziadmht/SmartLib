@@ -1,47 +1,121 @@
 {% extends 'core/base.html' %}
-{% block title %}Bibliothèque Numérique - SmartLib Oxford{% endblock %}
+{% load static %}
+
+{% block title %}E-Library Royale - SmartLib{% endblock %}
 
 {% block content %}
 <div class="reveal">
-    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
-        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Libre Baskerville';">
-            <i class="fas fa-book-reader me-3"></i>Ressources Numériques
-        </h1>
-        <div class="badge bg-academic p-3 rounded-0 shadow-sm">
-            <i class="fas fa-shield-alt me-2"></i> ACCÈS PREMIUM ACTIF
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-3 border-rouge-roi pb-4">
+        <div class="reveal-ink p-2">
+            <h1 class="display-3 fw-bold text-oxford-blue mb-0" style="font-family: 'Cinzel';">E-Library <span style="color: var(--dore);">Royale</span></h1>
+            <p class="text-rouge-roi text-uppercase fw-bold letter-spacing-2 small mb-0">Le Savoir à portée de clic</p>
+        </div>
+        <div class="text-end">
+            {% if user.est_administrateur or user.est_bibliothecaire %}
+            <div class="wax-seal" title="Accès Total"><i class="fas fa-crown"></i></div>
+            <div class="small fw-bold text-rouge-roi mt-2">PERSONNEL</div>
+            {% elif est_premium %}
+            <div class="wax-seal" style="background: radial-gradient(circle at 30% 30%, #f1c40f, #f39c12);"><i class="fas fa-gem"></i></div>
+            <div class="small fw-bold text-dore mt-2">PREMIUM</div>
+            {% else %}
+            <div class="wax-seal bg-secondary" style="background: gray;"><i class="fas fa-lock"></i></div>
+            <div class="small fw-bold text-muted mt-2">BLOQUÉ</div>
+            {% endif %}
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% if not est_premium and not user.est_bibliothecaire %}
+    <div class="alert bg-oxford-blue text-white mb-5 shadow-lg border-0 d-flex justify-content-between align-items-center p-5 border-double-gold parchment-texture">
+        <div class="d-flex align-items-center">
+            <div class="wax-seal me-4" style="width: 80px; height: 80px; font-size: 2rem;"><i class="fas fa-crown"></i></div>
+            <div>
+                <h4 class="fw-bold mb-1" style="font-family: 'Cinzel';">Accès Restreint au Sanctuaire Digital</h4>
+                <p class="mb-0 opacity-75">La lecture numérique est un privilège réservé aux membres possédant le **Sceau Premium**.</p>
+            </div>
+        </div>
+        <a href="{% url 'souscrire_abonnement' %}" class="btn-royal px-5 py-3">PASSER AU PREMIUM</a>
+    </div>
+    {% endif %}
+
+    <!-- KPIs Digitaux Haute Qualité -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card parchment-texture border-double-gold shadow-lg text-center p-4">
+                <h3 class="display-4 fw-bold text-oxford-blue mb-0" style="font-family: 'Cinzel';">{{ livres|length }}</h3>
+                <small class="text-uppercase fw-bold text-rouge-roi letter-spacing-2">Manuscrits Numérisés</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card parchment-texture border-double-gold shadow-lg text-center p-4">
+                <h3 class="display-4 fw-bold text-oxford-blue mb-0" style="font-family: 'Cinzel';">{{ total_vues }}</h3>
+                <small class="text-uppercase fw-bold text-rouge-roi letter-spacing-2">Lectures Totales</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card parchment-texture border-double-gold shadow-lg text-center p-4">
+                <h3 class="display-4 fw-bold text-oxford-blue mb-0"><i class="fas fa-infinity"></i></h3>
+                <small class="text-uppercase fw-bold text-rouge-roi letter-spacing-2">Accès Illimité</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des livres numériques (Style Grimoire) -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-5">
         {% for livre in livres %}
         <div class="col">
-            <div class="card h-100 shadow-sm border-0 rounded-0 transition-hover">
-                {% if livre.couverture %}
-                <img src="{{ livre.couverture.url }}" class="card-img-top rounded-0" alt="{{ livre.titre }}" style="height: 350px; object-fit: cover;">
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-oxford-blue">{{ livre.titre }}</h5>
-                    <p class="card-text text-muted small mb-3">Par {{ livre.auteur }}</p>
-                    <div class="d-grid">
-                        {% if livre.fichier_pdf %}
-                        <a href="{{ livre.fichier_pdf.url }}" target="_blank" class="btn btn-academic rounded-0 py-2">
-                            <i class="fas fa-file-pdf me-2"></i> Lire en ligne
-                        </a>
+            <div class="card h-100 border-0 shadow-2xl overflow-hidden card-hover book-digital-prestige bg-bois-fonce" style="border-radius: 15px; border: 2px solid var(--dore) !important;">
+                <div class="position-relative" style="height: 350px; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);">
+                    <div class="digital-glow"></div>
+                    {% if livre.couverture %}
+                    <img src="{{ livre.couverture.url }}" class="w-100 h-100 object-fit-cover opacity-75" alt="{{ livre.titre }}">
+                    {% else %}
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-dore opacity-25">
+                        <i class="fas fa-book fa-5x"></i>
+                    </div>
+                    {% endif %}
+                    
+                    {% if livre.id in consultations %}
+                    <div class="position-absolute top-0 end-0 m-2" style="z-index: 20;">
+                        <div class="wax-seal" style="width: 35px; height: 35px; font-size: 0.8rem; background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);"><i class="fas fa-check"></i></div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Overlay au survol -->
+                    <div class="poster-overlay d-flex flex-column align-items-center justify-content-center">
+                        {% if user.est_bibliothecaire or est_premium %}
+                        <a href="{% url 'lire_livre_numerique' livre.id %}" class="btn-royal shadow-lg px-4 py-3">OUVRIR LE GRIMOIRE</a>
                         {% else %}
-                        <button class="btn btn-outline-secondary disabled rounded-0">
-                            Fichier non disponible
-                        </button>
+                        <div class="wax-seal mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;"><i class="fas fa-lock"></i></div>
+                        <span class="text-white small fw-bold">SCEAU REQUIS</span>
                         {% endif %}
                     </div>
                 </div>
+                
+                <div class="card-body p-3 parchment-texture text-center position-relative">
+                    <h6 class="fw-bold text-oxford-blue mb-1 text-truncate reveal-ink" style="font-family: 'Cinzel';">{{ livre.titre }}</h6>
+                    <p class="text-rouge-roi x-small fw-bold italic mb-0">Par {{ livre.auteur_fk.nom|default:livre.auteur }}</p>
+                </div>
             </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-4"></i>
-            <h4 class="text-muted">Aucune ressource numérique n'est disponible pour le moment.</h4>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    .card-hover { transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .card-hover:hover { transform: translateY(-15px) scale(1.05); }
+    .digital-glow {
+        position: absolute; inset: 0;
+        background: radial-gradient(circle, rgba(197, 160, 89, 0.3) 0%, transparent 70%);
+        opacity: 0; transition: 0.5s;
+    }
+    .card-hover:hover .digital-glow { opacity: 1; }
+    
+    .poster-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,33,71,0.6);
+        opacity: 0; transition: 0.4s; z-index: 5;
+    }
+    .card-hover:hover .poster-overlay { opacity: 1; }
+</style>
 {% endblock %}

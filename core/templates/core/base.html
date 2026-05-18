@@ -3,206 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartLib - {% block title %}University Library of Oxford Heritage{% endblock %}</title>
-    <!-- Typographie Académique -->
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Libre+Baskerville:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>SmartLib - {% block title %}Sanctuaire Royal{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Cinzel:wght@700;900&family=Poppins:wght@400;600;800&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --oxford-blue: #001a35;
-            --oxford-crimson: #6a0000;
-            --oak-dark: #2c1b0e;
-            --gold-leaf: #d4af37;
-            --gold-brass: #c5a059;
-            --paper-cream: #fdfaf5;
-            --shadow-royal: 0 20px 50px rgba(0,0,0,0.3);
-            --gold-gradient: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #d4af37 100%);
-        }
-        
-        /* Badges de Prestige */
-        .badge-prestige {
-            background: var(--gold-gradient);
-            color: var(--oxford-blue);
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 5px 12px;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+            --oxford-blue: #002147;
+            --bois-fonce: #2c1810;
+            --bois-clair: #8b5a2b;
+            --rouge-roi: #800000;
+            --rouge-vif: #b22222;
+            --parchemin: #f4e4bc;
+            --parchemin-clair: #fdf5e6;
+            --dore: #c5a059;
+            --dore-brillant: #f9d71c;
+            --ink: #1a1a1a;
+            --ombre-portee: rgba(0,0,0,0.5);
         }
 
-        .badge-status {
-            border-radius: 0;
-            text-transform: uppercase;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            padding: 8px 15px;
-            font-weight: bold;
+        /* EFFET PARCHEMIN AVANCÉ */
+        .parchment-texture {
+            background-color: var(--parchemin);
+            background-image: 
+                url('https://www.transparenttextures.com/patterns/natural-paper.png'),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.1) 100%);
+            box-shadow: inset 0 0 100px rgba(139,90,43,0.2);
         }
 
-        /* Cartes Vault */
-        .card-vault {
-            background: var(--paper-cream);
-            border: 1px solid rgba(197, 160, 89, 0.3);
-            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        /* SCEAU DE CIRE (WAX SEAL) */
+        .wax-seal {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, var(--rouge-vif), var(--rouge-roi));
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dore);
+            font-size: 1.5rem;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.6), inset -2px -2px 5px rgba(0,0,0,0.4);
+            border: 3px solid rgba(0,0,0,0.1);
+            position: relative;
+            transform: rotate(-5deg);
+        }
+
+        .wax-seal::after {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            border: 2px dashed rgba(128, 0, 0, 0.3);
+        }
+
+        /* TYPOGRAPHIE ROYALE */
+        h1, h2, h3, .logo-title {
+            font-family: 'Cinzel', serif;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        /* ANIMATION DE RÉVÉLATION MAGIQUE */
+        .reveal-ink {
+            position: relative;
             overflow: hidden;
         }
-        .card-vault:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: var(--shadow-royal);
-            border-color: var(--gold-leaf);
+
+        .reveal-ink::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--parchemin);
+            animation: revealInkAnim 2s ease-out forwards;
         }
 
-        /* Texte Doré */
-        .text-gold {
-            background: var(--gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        @keyframes revealInkAnim {
+            from { transform: translateX(0); }
+            to { transform: translateX(105%); }
+        }
+
+        /* BORDURES DOUBLE-OR */
+        .border-double-gold {
+            border: 4px double var(--dore);
+            outline: 1px solid var(--bois-fonce);
+            outline-offset: -8px;
+        }
+
+        /* EFFET VINTAGE GLOBAUX */
+        .vintage-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10000;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.15) 100%);
+        }
+
+        .grain {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 10001;
+            background: url('https://www.transparenttextures.com/patterns/60-lines.png');
+        }
+
+        /* UTILITAIRES DE COULEURS HERITAGE */
+        .bg-oxford-blue { background-color: var(--oxford-blue) !important; }
+        .bg-bois-fonce { background-color: var(--bois-fonce) !important; }
+        .bg-bois-clair { background-color: var(--bois-clair) !important; }
+        .bg-rouge-roi { background-color: var(--rouge-roi) !important; }
+        .bg-parchemin { background-color: var(--parchemin) !important; }
+        .bg-gold { background-color: var(--dore) !important; }
+
+        .text-oxford-blue { color: var(--oxford-blue) !important; }
+        .text-bois-fonce { color: var(--bois-fonce) !important; }
+        .text-bois-clair { color: var(--bois-clair) !important; }
+        .text-rouge-roi { color: var(--rouge-roi) !important; }
+        .text-dore { color: var(--dore) !important; }
+
+        .badge-royal { 
+            background: var(--rouge-roi); 
+            color: var(--dore) !important; 
+            border: 1px solid var(--dore);
             font-weight: bold;
         }
-
-        /* Animation de pulsation pour les retards */
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(106, 0, 0, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(106, 0, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(106, 0, 0, 0); }
-        }
-        .pulse-retard { animation: pulse-red 2s infinite; }
-
-        .main-content {
-            padding: 40px;
-            transition: all 0.3s;
-        }
+        
+        .border-dore { border-color: var(--dore) !important; }
+        .border-oxford-blue { border-color: var(--oxford-blue) !important; }
+        .border-rouge-roi { border-color: var(--rouge-roi) !important; }
 
         body {
-            background-color: #f2ede4;
-            background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');
-            color: #1a1a1a;
-            font-family: 'Crimson Pro', serif;
+            background: var(--bois-fonce) url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            font-family: 'Lato', sans-serif;
+            color: var(--ink);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Navbar Style "Reliure de Luxe" */
+        /* NAVBAR PRESTIGE */
         .navbar {
             background: var(--oxford-blue) !important;
-            border-bottom: 3px solid var(--gold-leaf);
-            outline: 1px solid var(--gold-brass);
-            outline-offset: -5px;
-            padding: 18px 0;
+            border-bottom: 4px solid var(--dore);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 15px 0;
         }
-        
+
         .navbar-brand {
-            font-family: 'Libre Baskerville', serif;
-            letter-spacing: 2px;
-            transition: 0.5s;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
         }
-        .navbar-brand:hover { transform: translateY(-2px); text-shadow: 0 0 20px var(--gold-leaf); }
 
-        /* Sidebar "Cuir de Bibliophile" */
+        .logo-crest {
+            background: var(--rouge-roi);
+            color: var(--dore);
+            width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--dore);
+            border-radius: 8px;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            box-shadow: 0 0 10px rgba(201, 160, 61, 0.5);
+        }
+
+        .logo-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--dore) !important;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* SIDEBAR BOIS ET CUIR */
         .sidebar {
-            background: #150d08;
-            background-image: url('https://www.transparenttextures.com/patterns/leather.png');
-            border-right: 2px solid var(--gold-leaf);
+            background: var(--bois-clair) url('https://www.transparenttextures.com/patterns/leather.png');
+            border-right: 5px solid var(--oxford-blue);
             min-height: calc(100vh - 82px);
-            box-shadow: inset -10px 0 40px rgba(0,0,0,0.7);
         }
+
         .sidebar .nav-link {
-            font-family: 'Inter', sans-serif;
+            color: var(--oxford-blue);
+            font-weight: 800;
+            padding: 14px 25px;
+            margin: 6px 15px;
+            border-radius: 8px;
             text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            color: #9e8a75;
-            padding: 18px 25px;
-            border-left: 4px solid transparent;
-            transition: 0.4s;
-        }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background: rgba(212, 175, 55, 0.05);
-            color: var(--gold-leaf);
-            border-left: 4px solid var(--gold-leaf);
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+            font-size: 0.75rem;
+            transition: 0.3s;
+            border: 1px solid transparent;
         }
 
-        /* Cartes "Manuscript Edition" */
-        .card {
-            background: var(--paper-cream);
-            border: 1px solid rgba(197, 160, 89, 0.3);
-            border-radius: 0;
-            box-shadow: var(--shadow-royal);
+        .sidebar .nav-link:hover {
+            background: white;
+            color: var(--rouge-roi);
+            transform: translateX(10px);
+            border-color: var(--rouge-roi);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--oxford-blue) !important;
+            color: var(--dore) !important;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* MAIN CONTENT PARCHEMIN */
+        .main-content {
+            background: var(--parchemin) url('https://www.transparenttextures.com/patterns/natural-paper.png');
+            margin: 25px;
+            padding: 50px;
+            border: 10px double var(--oxford-blue);
+            outline: 2px solid var(--dore);
+            outline-offset: -12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            min-height: 85vh;
             position: relative;
         }
-        .card::after {
-            content: "";
-            position: absolute;
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border: 1px solid rgba(197, 160, 89, 0.15);
-            pointer-events: none;
+
+        .reveal { animation: figmaEntrance 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes figmaEntrance { 
+            from { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(10px); } 
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
         }
 
-        /* Boutons "Official Seal" */
-        .btn-academic {
-            background: var(--oxford-crimson);
-            color: var(--paper-cream);
-            border: 1px solid var(--gold-leaf);
-            border-radius: 0;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+        .btn-royal {
+            background: var(--rouge-roi);
+            color: white !important;
+            border: 2px solid var(--oxford-blue);
+            font-weight: 900;
             padding: 12px 30px;
-            transition: 0.4s;
-            position: relative;
-            overflow: hidden;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px var(--oxford-blue);
+            transition: 0.2s;
         }
-        .btn-academic:hover {
-            background: var(--oxford-blue);
-            color: var(--gold-leaf);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Custom Scrollbar Academic */
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: var(--oak-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--gold-brass); border: 3px solid var(--oak-dark); }
+        .btn-royal:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--oxford-blue); background: #5e0000; }
 
         .footer {
             background: var(--oxford-blue);
-            color: var(--paper-cream);
-            border-top: 4px solid var(--gold-brass);
+            color: var(--dore);
             padding: 40px 0;
-            font-family: 'Libre Baskerville', serif;
+            border-top: 5px solid var(--rouge-roi);
         }
     </style>
 </head>
-<body>
+<body class="position-relative">
+    <div class="vintage-overlay"></div>
+    <div class="grain"></div>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid px-5">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-university me-3"></i>SmartLib <span>&copy; 1984</span>
+                <div class="logo-crest"><i class="fas fa-university"></i></div>
+                <div>
+                    <span class="logo-title">SmartLib <span style="color:white">Royale</span></span>
+                    <span style="display:block; font-size:0.6rem; color:white; letter-spacing:2px; opacity:0.8;">OFFICIAL OXFORD HERITAGE</span>
+                </div>
             </a>
-            <div class="ms-auto d-flex align-items-center">
+            <div class="ms-auto">
                 {% if user.is_authenticated %}
                 <div class="dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                         <div class="text-end me-3 d-none d-md-block">
-                            <div class="fw-bold" style="font-family: 'Inter', sans-serif;">{{ user.username|upper }}</div>
-                            <div class="small opacity-75" style="color: var(--gold-brass);">{{ user.get_role_display }}</div>
+                            <div class="fw-bold">{{ user.username|upper }}</div>
+                            <div class="small text-dore">{{ user.get_role_display|upper }}</div>
                         </div>
                         {% if user.photo_profil %}
-                        <img src="{{ user.photo_profil.url }}" class="rounded-0 border border-2 border-gold-brass" style="width: 45px; height: 45px; object-fit: cover; border-color: var(--gold-brass) !important;">
+                        <img src="{{ user.photo_profil.url }}" class="rounded-circle border border-2 border-dore shadow" style="width: 45px; height: 45px; object-fit: cover;">
                         {% else %}
-                        <div class="rounded-0 bg-dark d-flex align-items-center justify-content-center border border-2 border-gold-brass" style="width: 45px; height: 45px;">
-                            <i class="fas fa-user-graduate text-white"></i>
+                        <div class="rounded-circle bg-white d-flex align-items-center justify-content-center border border-2 border-dore shadow" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user-shield text-oxford-blue"></i>
                         </div>
                         {% endif %}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-2 border-gold-brass rounded-0 mt-2" style="background: var(--paper-cream);">
-                        <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-id-badge me-2"></i> Dossier Adhérent</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Clôturer Session</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end p-0 border-0 shadow-2xl overflow-hidden" style="width: 250px; background: var(--parchemin);">
+                        <li class="bg-oxford-blue p-3 text-center border-bottom border-dore">
+                            <div class="fw-bold text-white small text-uppercase letter-spacing-1">{{ user.username }}</div>
+                            <div class="x-small text-dore fw-bold">{{ user.get_role_display|upper }}</div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-3 px-4 fw-bold text-oxford-blue border-bottom d-flex align-items-center" href="{% url 'profile' %}">
+                                <i class="fas fa-id-card-clip me-3 opacity-50"></i> MON DOSSIER
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-3 px-4 fw-bold text-danger d-flex align-items-center" href="{% url 'logout' %}">
+                                <i class="fas fa-power-off me-3 opacity-50"></i> QUITTER LE SANCTUAIRE
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 {% endif %}
@@ -213,143 +298,94 @@
     <div class="container-fluid">
         <div class="row">
             {% if user.is_authenticated %}
-            <div class="col-md-2 p-0 sidebar d-none d-md-block">
-                <nav class="nav flex-column mt-4">
-                    <div class="px-4 mt-4 mb-2 small opacity-50 text-white" style="letter-spacing: 2px;">GESTION ACCÈS</div>
+            <div class="col-md-2 p-0 sidebar d-none d-md-block shadow">
+                <nav class="nav flex-column py-4">
+                    <div class="px-4 mb-2 small fw-bold text-uppercase opacity-50" style="letter-spacing: 2px;">Privilèges</div>
                     {% if user.est_adherent %}
-                    <a class="nav-link {% if request.resolver_match.url_name == 'souscrire_abonnement' %}active{% endif %}" href="{% url 'souscrire_abonnement' %}">
-                        <i class="fas fa-crown"></i> Souscrire
-                    </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'mes_abonnements' %}active{% endif %}" href="{% url 'mes_abonnements' %}">
-                        <i class="fas fa-file-invoice-dollar"></i> Mon Sceau
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'souscrire_abonnement' %}active{% endif %}" href="{% url 'souscrire_abonnement' %}"><i class="fas fa-crown me-2"></i> Souscrire</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'mes_abonnements' %}active{% endif %}" href="{% url 'mes_abonnements' %}"><i class="fas fa-certificate me-2"></i> Mon Sceau</a>
                     {% endif %}
-
                     {% if user.est_administrateur %}
-                    <a class="nav-link {% if request.resolver_match.url_name == 'admin_abonnements' %}active{% endif %}" href="{% url 'admin_abonnements' %}">
-                        <i class="fas fa-chart-pie"></i> Suivi Financier
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'admin_abonnements' %}active{% endif %}" href="{% url 'admin_abonnements' %}"><i class="fas fa-vault me-2"></i> Finances</a>
                     {% endif %}
 
-                    <div class="px-4 mt-4 mb-2 small opacity-50 text-white" style="letter-spacing: 2px;">REGISTRES OFFICIELS</div>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="fas fa-th-large"></i> Dashboard
-                    </a>
+                    <div class="px-4 mt-4 mb-2 small fw-bold text-uppercase opacity-50" style="letter-spacing: 2px;">Bibliothèque</div>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-landmark me-2"></i> Accueil</a>
                     {% if user.est_adherent %}
-                    <a class="nav-link {% if request.resolver_match.url_name == 'mon_activite' %}active{% endif %}" href="{% url 'mon_activite' %}">
-                        <i class="fas fa-satellite-dish"></i> Suivi Live
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'mon_activite' %}active{% endif %}" href="{% url 'mon_activite' %}"><i class="fas fa-history me-2"></i> Activité</a>
                     {% endif %}
-                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#charteModal">
-                        <i class="fas fa-scroll"></i> Règlement
-                    </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'livre_liste' %}active{% endif %}" href="{% url 'livre_liste' %}">
-                        <i class="fas fa-archive"></i> Catalogue
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'livre_liste' %}active{% endif %}" href="{% url 'livre_liste' %}"><i class="fas fa-book-atlas me-2"></i> Catalogue</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'e_library' %}active{% endif %}" href="{% url 'e_library' %}"><i class="fas fa-cloud me-2"></i> E-Library</a>
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#reglementModal"><i class="fas fa-scroll me-2"></i> Règlement</a>
+
                     {% if user.est_bibliothecaire %}
-                    <a class="nav-link {% if request.resolver_match.url_name == 'emprunt_manuel' %}active{% endif %}" href="{% url 'emprunt_manuel' %}">
-                        <i class="fas fa-plus-circle"></i> Nouveau Prêt
-                    </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'emprunt_liste' %}active{% endif %}" href="{% url 'emprunt_liste' %}">
-                        <i class="fas fa-pen-nib"></i> Prêts & Retours
-                    </a>
+                    <div class="px-4 mt-4 mb-2 small fw-bold text-uppercase opacity-25" style="letter-spacing: 2px; color: white;">Gestion</div>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'emprunt_liste' %}active{% endif %}" href="{% url 'emprunt_liste' %}"><i class="fas fa-book-reader me-2"></i> Registre</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'utilisateur_liste' %}active{% endif %}" href="{% url 'utilisateur_liste' %}"><i class="fas fa-users me-2"></i> Adhérents</a>
                     {% endif %}
-
-                    {% if user.est_administrateur %}
-                    <div class="px-4 mt-4 mb-2 small opacity-50 text-white" style="letter-spacing: 2px;">ADMINISTRATION</div>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'utilisateur_liste' %}active{% endif %}" href="{% url 'utilisateur_liste' %}">
-                        <i class="fas fa-users-cog"></i> Utilisateurs
-                    <a class="nav-link {% if request.resolver_match.url_name == 'admin_abonnements' %}active{% endif %}" href="{% url 'admin_abonnements' %}">
-                        <i class="fas fa-tags"></i> Tarifs & Plans
-                    </a>
-
-                    {% endif %}
-
-                    <div class="px-4 mt-4 mb-2 small opacity-50 text-white" style="letter-spacing: 2px;">RESOURCES</div>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'e_library' %}active{% endif %} {% if user.get_dette_totale > 0 %}text-muted{% endif %}" href="{% url 'e_library' %}">
-                        <i class="fas fa-laptop-code"></i> E-Library
-                        {% if user.get_dette_totale > 0 %}
-                        <i class="fas fa-lock ms-2 small text-danger"></i>
-                        {% endif %}
-                    </a>
                 </nav>
             </div>
             {% endif %}
 
-            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-12{% endif %} main-content">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-dark border-0 border-start border-5 border-gold-brass rounded-0 shadow-sm" role="alert" style="background: var(--paper-cream);">
-                            <i class="fas fa-info-circle text-primary me-2"></i> {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                
-                {% block content %}{% endblock %}
+            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-12{% endif %} p-0">
+                <div class="main-content">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dark border-start border-5 border-rouge-roi shadow-sm mb-4">
+                                <i class="fas fa-feather-pointed text-rouge-roi me-2"></i> <strong>{{ message }}</strong>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% block content %}{% endblock %}
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="footer mt-5 text-center">
-        <div class="container">
-            <h4 class="mb-3">SmartLib Oxford Heritage</h4>
-            <p class="small text-uppercase opacity-75" style="letter-spacing: 3px;">Tradition & Innovation Harmonized</p>
-            <div class="mt-4 opacity-50 small">Established 1984 - Digitally Restored 2026</div>
-        </div>
-    </footer>
-
-    <!-- ============================================================== -->
-    <!-- MODAL : CHARTE D'OXFORD (RÈGLEMENT) -->
-    <!-- ============================================================== -->
-    <div class="modal fade" id="charteModal" tabindex="-1" aria-hidden="true">
+    <!-- MODAL RÈGLEMENT -->
+    <div class="modal fade" id="reglementModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="background: var(--paper-cream);">
-                <div class="modal-header bg-oxford-blue text-white border-0 py-4">
-                    <h4 class="modal-title fw-bold" style="font-family: 'Libre Baskerville';">
-                        <i class="fas fa-scroll me-3 text-gold-leaf"></i>Charte de Conduite SmartLib
-                    </h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal"></button>
+            <div class="modal-content border-0 shadow-2xl" style="background: var(--parchemin); border: 5px double var(--oxford-blue) !important;">
+                <div class="modal-header bg-oxford-blue text-white border-bottom border-3 border-dore rounded-0">
+                    <h4 class="modal-title fw-bold text-uppercase" style="font-family: 'Cinzel';"><i class="fas fa-scroll me-3 text-dore"></i> Chartes du Sanctuaire</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-5">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="text-center p-3 border-dashed rounded">
-                                <i class="fas fa-calendar-check fa-3x text-oxford-blue mb-3"></i>
-                                <h6 class="fw-bold">1. PRÊTS</h6>
-                                <p class="x-small text-muted">Durée de 15 jours par ouvrage. Réservation à valider sous 48h au guichet.</p>
+                    <div class="row g-4 text-center">
+                        <div class="col-md-4 border-end border-light">
+                            <div class="p-3">
+                                <i class="fas fa-clock fa-3x text-oxford-blue mb-3"></i>
+                                <h6 class="fw-bold">15 JOURS</h6>
+                                <p class="small text-muted">Durée de grâce par manuscrit.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 border-end border-light">
+                            <div class="p-3">
+                                <i class="fas fa-gavel fa-3x text-rouge-roi mb-3"></i>
+                                <h6 class="fw-bold">3 MAD / J</h6>
+                                <p class="small text-muted">Droit de retard automatique.</p>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="text-center p-3 border-dashed rounded bg-light">
-                                <i class="fas fa-gavel fa-3x text-oxford-crimson mb-3"></i>
-                                <h6 class="fw-bold text-oxford-crimson">2. SANCTIONS</h6>
-                                <p class="x-small text-muted">3 MAD par jour de retard. Blocage automatique si dette > 30 MAD.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center p-3 border-dashed rounded">
-                                <i class="fas fa-laptop-code fa-3x text-success mb-3"></i>
-                                <h6 class="fw-bold">3. E-LIBRARY</h6>
-                                <p class="x-small text-muted">Privilège réservé aux membres Premium. Bloqué en cas d'infraction physique.</p>
+                            <div class="p-3">
+                                <i class="fas fa-crown fa-3x text-dore mb-3"></i>
+                                <h6 class="fw-bold">PREMIUM</h6>
+                                <p class="small text-muted">Privilège des archives digitales.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-5 p-4 bg-dark text-white text-center">
-                        <p class="small mb-0 italic">"Le respect de ces règles garantit la pérennité du savoir pour toute la communauté académique."</p>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-academic" data-bs-dismiss="modal">J'accepte les conditions</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <style>
-        .border-dashed { border: 1px dashed var(--gold-brass); }
-        .x-small { font-size: 0.75rem; }
-    </style>
-
+    <footer class="footer text-center">
+        <div class="container">
+            <h4 class="fw-bold text-dore">SmartLib Royale</h4>
+            <p class="small text-uppercase opacity-75 fw-bold">Oxford Heritage • Sanctuaire du Savoir • 2026</p>
+        </div>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

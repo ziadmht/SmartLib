@@ -1,99 +1,107 @@
 {% extends 'core/base.html' %}
-{% block title %}{% if mode == 'ajouter' %}Ajouter{% else %}Modifier{% endif %} un livre{% endblock %}
+{% block title %}{% if mode == 'ajouter' %}Nouveau Manuscrit{% else %}Rectification{% endif %} - SmartLib Royale{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">
-                    <i class="fas fa-book"></i>
-                    {% if mode == 'ajouter' %}Ajouter un livre{% else %}Modifier : {{ livre.titre }}{% endif %}
-                </h4>
+    <div class="col-md-9">
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header bg-bois-fonce text-dore py-3 border-bottom border-3 border-rouge-roi">
+                <h3 class="mb-0 fw-bold">
+                    <i class="fas fa-feather-pointed me-2"></i>
+                    {% if mode == 'ajouter' %}Enregistrement d'un Nouveau Manuscrit{% else %}Rectification du Registre : {{ livre.titre }}{% endif %}
+                </h3>
             </div>
-            <div class="card-body">
-                <!-- Message de chargement / erreur -->
-                <div id="smartFillMessage" style="display: none;" class="alert"></div>
+            <div class="card-body p-5" style="background: var(--parchemin); background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');">
+                
+                <!-- Message de chargement / erreur Smart Fill -->
+                <div id="smartFillMessage" style="display: none;" class="alert shadow-sm border-2"></div>
                 
                 <form method="post" enctype="multipart/form-data" id="livreForm">
                     {% csrf_token %}
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Titre *</label>
-                            <input type="text" name="titre" id="id_titre" class="form-control" required value="{{ livre.titre|default:'' }}">
+                    <div class="row g-4">
+                        <!-- SECTION 1 : MÉTADONNÉES -->
+                        <div class="col-md-12">
+                            <h5 class="text-rouge-roi fw-bold text-uppercase small border-bottom border-bois-clair pb-2 mb-4">I. État Civil de l'Ouvrage</h5>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Auteur *</label>
-                            <input type="text" name="auteur" id="id_auteur" class="form-control" required value="{{ livre.auteur|default:'' }}">
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-bois-fonce">Titre de l'Œuvre *</label>
+                            <input type="text" name="titre" id="id_titre" class="form-control border-bois-clair" required value="{{ livre.titre|default:'' }}" style="background: rgba(255,255,255,0.5);">
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">ISBN (13 chiffres)</label>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-bois-fonce">Nom de l'Auteur *</label>
+                            <input type="text" name="auteur" id="id_auteur" class="form-control border-bois-clair" required value="{{ livre.auteur|default:'' }}" style="background: rgba(255,255,255,0.5);">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-bois-fonce">Index ISBN (13 chiffres)</label>
                             <div class="input-group">
-                                <input type="text" name="isbn" id="id_isbn" class="form-control" value="{{ livre.isbn|default:'' }}" placeholder="9782070541270">
-                                <button type="button" id="btnSmartFill" class="btn btn-info">
-                                    <i class="fas fa-magic"></i> Auto-remplir
+                                <input type="text" name="isbn" id="id_isbn" class="form-control border-bois-clair" value="{{ livre.isbn|default:'' }}" placeholder="Ex: 9782070541270" style="background: rgba(255,255,255,0.5);">
+                                <button type="button" id="btnSmartFill" class="btn btn-royal-light">
+                                    <i class="fas fa-wand-magic-sparkles me-2"></i> SMART FILL
                                 </button>
                             </div>
-                            <small class="text-muted">Tapez ou collez un ISBN, puis cliquez sur "Auto-remplir"</small>
+                            <small class="text-muted italic">L'intelligence artificielle complétera les champs pour vous.</small>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Année publication</label>
-                            <input type="number" name="annee_publication" id="id_annee_publication" class="form-control" value="{{ livre.annee_publication|default:'' }}">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-bois-fonce">Année de Publication</label>
+                            <input type="number" name="annee_publication" id="id_annee_publication" class="form-control border-bois-clair" value="{{ livre.annee_publication|default:'' }}" style="background: rgba(255,255,255,0.5);">
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Quantité totale</label>
-                            <input type="number" name="quantite_totale" id="id_quantite_totale" class="form-control" value="{{ livre.quantite_totale|default:0 }}">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-bois-fonce">Quantité Totale</label>
+                            <input type="number" name="quantite_totale" id="id_quantite_totale" class="form-control border-bois-clair" value="{{ livre.quantite_totale|default:0 }}" style="background: rgba(255,255,255,0.5);">
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Éditeur</label>
-                        <input type="text" name="editeur" id="id_editeur" class="form-control" value="{{ livre.editeur|default:'' }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Résumé</label>
-                        <textarea name="resume" id="id_resume" class="form-control" rows="4">{{ livre.resume|default:'' }}</textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Couverture</label>
-                            <input type="file" name="couverture" id="id_couverture" class="form-control" accept="image/*">
-                            {% if livre.couverture %}
-                            <small class="text-muted">Actuel: {{ livre.couverture.name }}</small>
-                            {% endif %}
-                            <div id="couverturePreview" class="mt-2"></div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-bois-fonce">Maison d'Édition</label>
+                            <input type="text" name="editeur" id="id_editeur" class="form-control border-bois-clair" value="{{ livre.editeur|default:'' }}" style="background: rgba(255,255,255,0.5);">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                <input type="checkbox" name="a_version_numerique" class="form-check-input" id="versionNumerique" {% if livre.a_version_numerique %}checked{% endif %}>
-                                <label class="form-check-label" for="versionNumerique">
-                                    <i class="fas fa-cloud-upload-alt"></i> Version numérique disponible
+
+                        <!-- SECTION 2 : ANALYSE -->
+                        <div class="col-md-12 mt-5">
+                            <h5 class="text-rouge-roi fw-bold text-uppercase small border-bottom border-bois-clair pb-2 mb-4">II. Analyse & Sommaire</h5>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-bois-fonce">Résumé de l'Ouvrage</label>
+                            <textarea name="resume" id="id_resume" class="form-control border-bois-clair" rows="6" style="background: rgba(255,255,255,0.5); font-family: 'Playfair Display', serif;">{{ livre.resume|default:'' }}</textarea>
+                        </div>
+
+                        <!-- SECTION 3 : VISUELS & NUMÉRIQUE -->
+                        <div class="col-md-12 mt-5">
+                            <h5 class="text-rouge-roi fw-bold text-uppercase small border-bottom border-bois-clair pb-2 mb-4">III. Supports & Médias</h5>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-bois-fonce">Illustration de Couverture</label>
+                            <input type="file" name="couverture" id="id_couverture" class="form-control border-bois-clair" accept="image/*">
+                            <div id="couverturePreview" class="mt-3"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check p-4 rounded border-2 border-bois-clair" style="background: rgba(212, 163, 115, 0.1);">
+                                <input type="checkbox" name="a_version_numerique" class="form-check-input ms-0 me-3" id="versionNumerique" {% if livre.a_version_numerique %}checked{% endif %} style="transform: scale(1.5);">
+                                <label class="form-check-label fw-bold text-bois-fonce" for="versionNumerique">
+                                    <i class="fas fa-cloud-upload-alt text-rouge-roi me-2"></i> Inclure une version numérique
                                 </label>
+                            </div>
+                            
+                            <div id="pdfUpload" class="mt-3" style="display: {% if livre.a_version_numerique %}block{% else %}none{% endif %};">
+                                <label class="form-label fw-bold text-bois-fonce">Archive PDF/EPUB</label>
+                                <input type="file" name="fichier_pdf" class="form-control border-bois-clair" accept=".pdf,.epub">
                             </div>
                         </div>
                     </div>
                     
-                    <div id="pdfUpload" class="mb-3" style="display: {% if livre.a_version_numerique %}block{% else %}none{% endif %};">
-                        <label class="form-label">Fichier PDF/EPUB</label>
-                        <input type="file" name="fichier_pdf" class="form-control" accept=".pdf,.epub">
-                        {% if livre.fichier_pdf %}
-                        <small class="text-muted">Actuel: {{ livre.fichier_pdf.name }}</small>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{% url 'livre_liste' %}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Annuler
+                    <div class="d-flex justify-content-between mt-5 pt-4 border-top border-bois-clair">
+                        <a href="{% url 'livre_liste' %}" class="btn btn-cuir px-5 py-3 shadow">
+                            <i class="fas fa-times me-2"></i> Annuler
                         </a>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> 
-                            {% if mode == 'ajouter' %}Ajouter le livre{% else %}Enregistrer les modifications{% endif %}
+                        <button type="submit" class="btn-royal px-5 py-3 shadow-lg">
+                            <i class="fas fa-pen-nib me-2 text-dore"></i> 
+                            {% if mode == 'ajouter' %}Inscrire au Catalogue{% else %}Valider les Rectifications{% endif %}
                         </button>
                     </div>
                 </form>
@@ -102,95 +110,72 @@
     </div>
 </div>
 
+<style>
+    .btn-royal-light {
+        background: var(--rouge-roi-clair);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 0 20px;
+    }
+    .btn-royal-light:hover { background: var(--rouge-roi); color: white; }
+    .form-control:focus {
+        border-color: var(--rouge-roi) !important;
+        box-shadow: 0 0 0 0.25rem rgba(183, 28, 28, 0.1) !important;
+    }
+</style>
+
 <script>
     // Afficher/masquer le champ PDF selon la checkbox
     document.getElementById('versionNumerique').addEventListener('change', function() {
         document.getElementById('pdfUpload').style.display = this.checked ? 'block' : 'none';
     });
     
-    // ============================================================
-    // SMART FILL - Auto-remplissage par ISBN
-    // ============================================================
-    
+    // SMART FILL Logic
     const btnSmartFill = document.getElementById('btnSmartFill');
     const isbnInput = document.getElementById('id_isbn');
     const messageDiv = document.getElementById('smartFillMessage');
     
     btnSmartFill.addEventListener('click', function() {
         const isbn = isbnInput.value.trim();
-        
         if (!isbn) {
             showMessage('Veuillez saisir un ISBN', 'warning');
             return;
         }
         
-        // Désactiver le bouton pendant le chargement
         btnSmartFill.disabled = true;
-        btnSmartFill.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recherche...';
-        showMessage('Recherche en cours...', 'info');
+        btnSmartFill.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Magie...';
+        showMessage('Interrogation des archives mondiales...', 'info');
         
-        // Appel AJAX à l'API
         fetch(`/api/isbn/${encodeURIComponent(isbn)}/`)
             .then(response => {
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Aucun livre trouvé pour cet ISBN');
-                    }
-                    throw new Error('Erreur lors de la recherche');
-                }
+                if (!response.ok) throw new Error('Ouvrage non répertorié');
                 return response.json();
             })
             .then(data => {
-                // Remplir les champs avec les données reçues
                 if (data.titre) document.getElementById('id_titre').value = data.titre;
                 if (data.auteur) document.getElementById('id_auteur').value = data.auteur;
                 if (data.editeur) document.getElementById('id_editeur').value = data.editeur;
                 if (data.annee_publication) document.getElementById('id_annee_publication').value = data.annee_publication;
                 if (data.resume) document.getElementById('id_resume').value = data.resume;
                 
-                // Afficher un message de succès
-                showMessage('Formulaire pré-rempli avec succès !', 'success');
-                
-                // Optionnel : prévisualiser la couverture si URL fournie
+                showMessage('Les archives ont répondu. Formulaire complété !', 'success');
                 if (data.couverture_url) {
-                    const previewDiv = document.getElementById('couverturePreview');
-                    previewDiv.innerHTML = `<img src="${data.couverture_url}" class="img-thumbnail" style="max-height: 100px;">`;
+                    document.getElementById('couverturePreview').innerHTML = `<img src="${data.couverture_url}" class="rounded border border-3 border-dore shadow" style="max-height: 150px;">`;
                 }
             })
-            .catch(error => {
-                showMessage(error.message, 'danger');
-            })
+            .catch(error => { showMessage(error.message, 'danger'); })
             .finally(() => {
-                // Réactiver le bouton
                 btnSmartFill.disabled = false;
-                btnSmartFill.innerHTML = '<i class="fas fa-magic"></i> Auto-remplir';
+                btnSmartFill.innerHTML = '<i class="fas fa-wand-magic-sparkles me-2"></i> SMART FILL';
             });
     });
     
     function showMessage(message, type) {
         messageDiv.style.display = 'block';
-        messageDiv.className = `alert alert-${type}`;
-        messageDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-        
-        // Cacher le message après 5 secondes
-        setTimeout(() => {
-            messageDiv.style.display = 'none';
-        }, 5000);
+        messageDiv.className = `alert alert-${type} border-2 fw-bold`;
+        messageDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i> ${message}`;
+        setTimeout(() => { messageDiv.style.display = 'none'; }, 6000);
     }
 </script>
-
-{% block extra_js %}
-<style>
-    .alert {
-        transition: all 0.3s ease;
-    }
-    .fa-spinner {
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-</style>
-{% endblock %}
 {% endblock %}

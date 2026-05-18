@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+{% block title %}Rectifier la Fiche de {{ auteur.nom }} - SmartLib Royale{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header bg-oxford-blue text-dore py-3 border-bottom border-3 border-rouge-roi">
+                <h3 class="mb-0 fw-bold">
+                    <i class="fas fa-user-edit me-2"></i>Rectifier le Registre : {{ auteur.nom }}
+                </h3>
+            </div>
+            <div class="card-body p-5" style="background: var(--parchemin);">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-oxford-blue">Nom de l'Écrivain</label>
+                        <input type="text" name="nom" class="form-control border-bois-clair" value="{{ auteur.nom }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-oxford-blue">Note Biographique</label>
+                        <textarea name="biographie" class="form-control border-bois-clair" rows="8" style="font-family: 'Playfair Display', serif;">{{ auteur.biographie|default:"" }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-oxford-blue">Portrait Officiel</label>
+                        {% if auteur.photo %}
+                        <div class="mb-3">
+                            <img src="{{ auteur.photo.url }}" class="rounded shadow-sm" style="max-height: 150px;">
+                        </div>
+                        {% endif %}
+                        <input type="file" name="photo" class="form-control border-bois-clair" accept="image/*">
+                        <small class="text-muted italic">Format recommandé : Portrait (Vertical)</small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-5 pt-4 border-top border-bois-clair">
+                        <a href="{% url 'auteur_liste' %}" class="btn btn-cuir px-5 py-3 shadow">
+                            <i class="fas fa-times me-2"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn-royal px-5 py-3 shadow-lg">
+                            <i class="fas fa-save me-2 text-dore"></i> Enregistrer les Rectifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

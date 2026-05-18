@@ -1,0 +1,265 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Centre de Commandement - SmartLib Royale{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-4 border-oxford-blue pb-3">
+        <h1 class="display-5 fw-bold text-oxford-blue" style="font-family: 'Cinzel', serif;">
+            <i class="fas fa-tower-observation me-3 text-dore"></i>Centre de <span style="color: var(--rouge-roi);">Commandement</span>
+        </h1>
+        <div class="text-end">
+            <span class="badge bg-oxford-blue text-dore px-3 py-2 text-uppercase shadow-sm">
+                <i class="fas fa-shield-halved me-2"></i> Audit en temps réel
+            </span>
+        </div>
+    </div>
+
+    <!-- RANGÉE 1 : KPIs MAJEURS -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-lg text-white" style="background: linear-gradient(135deg, #002147 0%, #004080 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="h3 fw-bold mb-0">{{ total_adherents }}</div>
+                            <div class="small text-uppercase opacity-75 fw-bold">Population</div>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-lg text-white" style="background: linear-gradient(135deg, #B71C1C 0%, #D32F2F 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="h3 fw-bold mb-0">{{ emprunts_en_cours }}</div>
+                            <div class="small text-uppercase opacity-75 fw-bold">Prêts Actifs</div>
+                        </div>
+                        <i class="fas fa-book-reader fa-2x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-lg text-white" style="background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="h3 fw-bold mb-0">{{ total_livres }}</div>
+                            <div class="small text-uppercase opacity-75 fw-bold">Volumes</div>
+                        </div>
+                        <i class="fas fa-book-atlas fa-2x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-lg text-dark" style="background: linear-gradient(135deg, #C9A03D 0%, #FFD700 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="h3 fw-bold mb-0">{{ benefice_total }} <small class="h6">MAD</small></div>
+                            <div class="small text-uppercase opacity-75 fw-bold">Trésor Total</div>
+                        </div>
+                        <i class="fas fa-vault fa-2x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RANGÉE 2 : GRAPHIQUES ANALYTIQUES -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-oxford-blue text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-chart-line me-2 text-dore"></i> Croissance du Trésor (Pénalités)</h5>
+                </div>
+                <div class="card-body" style="background: white;">
+                    <canvas id="financeChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-oxford-blue text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold"><i class="fas fa-crown me-2 text-dore"></i> Sources de Revenus</h5>
+                </div>
+                <div class="card-body d-flex flex-column align-items-center justify-content-center" style="background: white;">
+                    <canvas id="revenusChart"></canvas>
+                    <div class="mt-3 text-center">
+                        <div class="small fw-bold text-success">Pénalités : {{ revenus_penalites }} MAD</div>
+                        <div class="small fw-bold text-primary">Abonnements : {{ revenus_abonnements }} MAD</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RANGÉE 3 : TABLES DE PERFORMANCE ET FINANCES -->
+    <div class="row g-4">
+        <!-- TOP AUTEURS -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-oxford-blue text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-dore"><i class="fas fa-feather-pointed me-2"></i> Maîtres de la Plume</h5>
+                </div>
+                <div class="card-body p-0" style="background: var(--parchemin);">
+                    <div class="list-group list-group-flush">
+                        {% for a in top_auteurs %}
+                        <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3">
+                            <div class="fw-bold text-oxford-blue">{{ a.nom }}</div>
+                            <span class="badge bg-dore text-oxford-blue rounded-pill px-3">{{ a.total_emprunts }} lecteurs</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP LECTEURS -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-bois-fonce text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-dore"><i class="fas fa-medal me-2"></i> Elite du Sanctuaire</h5>
+                </div>
+                <div class="card-body p-0" style="background: var(--parchemin);">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light x-small fw-bold text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Membre</th>
+                                    <th class="text-center">Manuscrits Lus</th>
+                                    <th>Abonnement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for l in lecteurs_actifs %}
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-bold text-oxford-blue">{{ l.username|upper }}</div>
+                                        <div class="x-small text-muted">Inscrit en {{ l.date_joined|date:"Y" }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-oxford-blue text-white rounded-pill px-3">{{ l.total_emprunts }}</span>
+                                    </td>
+                                    <td>
+                                        {% with l.get_abonnement_actif as abo %}
+                                            {% if abo %}
+                                                <span class="badge {% if abo.plan.nom == 'Premium' %}badge-royal{% else %}bg-secondary{% endif %} small">
+                                                    {{ abo.plan.nom }}
+                                                </span>
+                                            {% else %}
+                                                <span class="x-small text-muted italic">Sans sceau</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DERNIERS PAIEMENTS -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-rouge-roi text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-white"><i class="fas fa-receipt me-2"></i> Flux Financier Récent</h5>
+                </div>
+                <div class="card-body p-0" style="background: var(--parchemin);">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light x-small fw-bold text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Contributeur</th>
+                                    <th>Montant</th>
+                                    <th>Date</th>
+                                    <th>Motif</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in paiements_recents %}
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-bold">{{ p.adherent.username }}</div>
+                                    </td>
+                                    <td><span class="text-success fw-bold">+{{ p.montant }} MAD</span></td>
+                                    <td class="small">{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
+                                    <td class="x-small italic">{{ p.emprunt.livre.titre|truncatechars:20 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not paiements_recents %}
+                    <div class="p-4 text-center text-muted italic small">Aucun paiement récent enregistré.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.65rem; }
+    .badge-royal { background: var(--rouge-roi); color: var(--dore); border: 1px solid var(--dore); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// 1. Graphique Évolution Trésor (Pénalités)
+const labelsFinance = {{ labels_finance|safe }};
+const dataFinance = {{ data_finance|safe }};
+const ctxFinance = document.getElementById('financeChart').getContext('2d');
+new Chart(ctxFinance, {
+    type: 'line',
+    data: {
+        labels: labelsFinance,
+        datasets: [{
+            label: 'Recettes MAD',
+            data: dataFinance,
+            borderColor: '#B71C1C',
+            backgroundColor: 'rgba(183, 28, 28, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#002147',
+            pointRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// 2. Graphique Répartition Revenus
+const ctxRevenus = document.getElementById('revenusChart').getContext('2d');
+new Chart(ctxRevenus, {
+    type: 'pie',
+    data: {
+        labels: ['Pénalités', 'Abonnements (Sim.)'],
+        datasets: [{
+            data: [{{ revenus_penalites }}, {{ revenus_abonnements }}],
+            backgroundColor: ['#B71C1C', '#002147'],
+            hoverOffset: 15
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}
